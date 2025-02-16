@@ -56,5 +56,6 @@
         <File path="src/neorv32_wdt.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_xbus.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/tang-nano-9k_test_setup_bootloader.cst" type="file.cst" enable="1"/>
+        <File path="src/tang-nano-9k_test_setup_bootloader.sdc" type="file.sdc" enable="1"/>
     </FileList>
 </Project>

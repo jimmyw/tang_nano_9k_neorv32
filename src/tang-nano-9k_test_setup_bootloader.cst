@@ -2,6 +2,7 @@
 //Device: GW1NR-9
 //Device Version: C
 
+// These are all the leds on the 9K board
 IO_LOC "gpio_o[0]" 10;
 IO_PORT "gpio_o[0]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
 IO_LOC "gpio_o[1]" 11;
@@ -15,9 +16,9 @@ IO_PORT "gpio_o[4]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
 IO_LOC "gpio_o[5]" 16;
 IO_PORT "gpio_o[5]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
 
-IO_LOC "uart0_rxd_i" 18;
+IO_LOC "uart0_rxd_i" 32;
 IO_PORT "uart0_rxd_i" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
-IO_LOC "uart0_txd_o" 17;
+IO_LOC "uart0_txd_o" 31;
 IO_PORT "uart0_txd_o" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8 BANK_VCCIO=3.3;
 
 IO_LOC "rstn_i" 3;
