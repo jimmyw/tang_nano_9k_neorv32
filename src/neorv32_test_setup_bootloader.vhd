@@ -30,7 +30,13 @@ entity neorv32_test_setup_bootloader is
     gpio_o : out std_ulogic_vector(5 downto 0); -- parallel output
     -- UART0 --
     uart0_txd_o : out std_ulogic; -- UART0 send data
-    uart0_rxd_i : in  std_ulogic  -- UART0 receive data
+    uart0_rxd_i : in  std_ulogic;  -- UART0 receive data
+
+    -- JTAG --
+    jtag_tck_i     : in  std_ulogic;                                 -- serial clock
+    jtag_tdi_i     : in  std_ulogic;                                 -- serial data input
+    jtag_tdo_o     : out std_ulogic;                                 -- serial data output
+    jtag_tms_i     : in  std_ulogic                                 -- mode select
   );
 end entity;
 
@@ -59,9 +65,10 @@ begin
     MEM_INT_DMEM_EN   => true,              -- implement processor-internal data memory
     MEM_INT_DMEM_SIZE => MEM_INT_DMEM_SIZE, -- size of processor-internal data memory in bytes
     -- Processor peripherals --
-    IO_GPIO_NUM       => 8,                 -- number of GPIO input/output pairs (0..32)
+    IO_GPIO_NUM       => 6,                 -- number of GPIO input/output pairs (0..32)
     IO_CLINT_EN       => true,              -- implement core local interruptor (CLINT)?
-    IO_UART0_EN       => true               -- implement primary universal asynchronous receiver/transmitter (UART0)?
+    IO_UART0_EN       => true,              -- implement primary universal asynchronous receiver/transmitter (UART0)?
+    OCD_EN        => true               -- implement JTAG interface
   )
   port map (
     -- Global control --
@@ -71,7 +78,13 @@ begin
     gpio_o      => con_gpio_out, -- parallel output
     -- primary UART0 (available if IO_UART0_EN = true) --
     uart0_txd_o => uart0_txd_o,  -- UART0 send data
-    uart0_rxd_i => uart0_rxd_i   -- UART0 receive data
+    uart0_rxd_i => uart0_rxd_i,   -- UART0 receive data
+
+    -- JTAG (available if IO_JTAG_EN = true) --
+    jtag_tck_i => jtag_tck_i,                                 -- serial clock
+    jtag_tdi_i => jtag_tdi_i,                                 -- serial data input
+    jtag_tdo_o => jtag_tdo_o,                                 -- serial data output
+    jtag_tms_i => jtag_tms_i                                 -- mode select
   );
 
   -- GPIO output --
