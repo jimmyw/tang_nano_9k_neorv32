@@ -21,8 +21,8 @@ entity tang_nano_9k is
     CLOCK_FREQUENCY   : natural := 27000000;  -- clock frequency of clk_i in Hz
     MEM_INT_IMEM_SIZE : natural := 16*1024;   -- size of processor-internal instruction memory in bytes
     MEM_INT_DMEM_SIZE : natural := 8*1024;     -- size of processor-internal data memory in bytes
-    SLAVE_A_BASE : std_logic_vector(31 downto 0) := x"90000000";
-    SLAVE_A_SIZE : std_logic_vector(31 downto 0) := x"00013000" -- 38 pages * 2048 bytes
+    UFLASH_BASE : std_logic_vector(31 downto 0) := x"90000000";
+    UFLASH_END : std_logic_vector(31 downto 0) :=  x"90013000" -- 38 pages * 2048 bytes
 
   );
   port (
@@ -71,31 +71,12 @@ architecture top_rtl of tang_nano_9k is
 
 begin
 
- process(xbus_adr_o)
-    variable addr : unsigned(31 downto 0);
-    variable uflash_base : unsigned(31 downto 0);
-    variable uflash_end  : unsigned(31 downto 0);
 
-
-  begin
-    -- Convert generics and input address to unsigned for easy compare
-    addr := unsigned(xbus_adr_o);
-
-    uflash_base := unsigned(SLAVE_A_BASE);
-    -- uflash_end = uflash_base + SLAVE_A_SIZE - 1
-    uflash_end  := unsigned(SLAVE_A_BASE) + unsigned(SLAVE_A_SIZE) - 1;
-
-
-    -- Default to not selecting any slave
-    sel_uflash   <= '0';
-
-    -- Check if address is in uflash range
-    if (addr >= uflash_base) and (addr <= uflash_end) then
-      sel_uflash <= '1';
-    end if;
-  end process;
-
-
+  -- Check if address is in uflash range
+  sel_uflash <= '1' when (
+      (unsigned(xbus_adr_o) >= unsigned(UFLASH_BASE)) and
+      (unsigned(xbus_adr_o) < unsigned(UFLASH_END))
+      ) else '0';
 
   -- Connect the Xbus signals to the selected slave, or default to err if no slave is selected
   xbus_ack_i <= uflash_ack_i when (sel_uflash = '1') else
