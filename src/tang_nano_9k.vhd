@@ -40,11 +40,45 @@ entity tang_nano_9k is
   );
 end entity;
 
-architecture tang_nano_9k_rtl of tang_nano_9k is
+architecture top_rtl of tang_nano_9k is
 
   signal con_gpio_out : std_ulogic_vector(31 downto 0);
 
+
+  --
+  signal xbus_adr_o : std_ulogic_vector(31 downto 0);
+  signal xbus_dat_o : std_ulogic_vector(31 downto 0);
+  signal xbus_tag_o : std_ulogic_vector(2 downto 0);
+  signal xbus_we_o : std_ulogic;
+  signal xbus_sel_o : std_ulogic_vector(3 downto 0);
+  signal xbus_stb_o : std_ulogic;
+  signal xbus_cyc_o : std_ulogic;
+  signal xbus_dat_i : std_ulogic_vector(31 downto 0);
+  signal xbus_ack_i : std_ulogic;
+  signal xbus_err_i : std_ulogic;
+
+
 begin
+
+  uflash_inst: entity work.uflash
+  generic map (
+    CLK_FREQ => CLOCK_FREQUENCY
+  )
+  port map (
+    reset_n => rstn_i,
+    clk => clk_i,
+    wb_cyc_i => xbus_cyc_o,
+    wb_stb_i => xbus_stb_o,
+    wb_we_i => xbus_we_o,
+    wb_sel_i => xbus_sel_o,
+    wb_adr_i => xbus_adr_o(14 downto 0),
+    wb_dat_o => xbus_dat_i,
+    wb_dat_i => xbus_dat_o,
+    wb_ack_o => xbus_ack_i
+  );
+
+
+
 
   -- The Core Of The Problem ----------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
@@ -68,7 +102,9 @@ begin
     IO_GPIO_NUM       => 6,                 -- number of GPIO input/output pairs (0..32)
     IO_CLINT_EN       => true,              -- implement core local interruptor (CLINT)?
     IO_UART0_EN       => true,              -- implement primary universal asynchronous receiver/transmitter (UART0)?
-    OCD_EN        => true               -- implement JTAG interface
+    OCD_EN        => true,               -- implement JTAG interface
+
+    XBUS_EN      => true              -- implement X-Bus interface
   )
   port map (
     -- Global control --
@@ -84,7 +120,20 @@ begin
     jtag_tck_i => jtag_tck_i,                                 -- serial clock
     jtag_tdi_i => jtag_tdi_i,                                 -- serial data input
     jtag_tdo_o => jtag_tdo_o,                                 -- serial data output
-    jtag_tms_i => jtag_tms_i                                 -- mode select
+    jtag_tms_i => jtag_tms_i,                                 -- mode select
+
+
+    xbus_adr_o => xbus_adr_o,
+    xbus_dat_o => xbus_dat_o,
+    xbus_tag_o => xbus_tag_o,
+    xbus_we_o => xbus_we_o,
+    xbus_sel_o => xbus_sel_o,
+    xbus_stb_o => xbus_stb_o,
+    xbus_cyc_o => xbus_cyc_o,
+    xbus_dat_i => xbus_dat_i,
+    xbus_ack_i => xbus_ack_i,
+    xbus_err_i => xbus_err_i
+
   );
 
   -- GPIO output --

@@ -5,6 +5,7 @@
     <Version>5</Version>
     <Device name="GW1NR-9C" pn="GW1NR-LV9QN88PC6/I5">gw1nr9c-004</Device>
     <FileList>
+        <File path="src/gowin_user_flash.vhd" type="file.vhdl" enable="1"/>
         <File path="src/neorv32_application_image.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_boot_rom.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_bootloader_image.vhd" type="file.vhdl" enable="1" library="neorv32"/>
@@ -55,6 +56,7 @@
         <File path="src/neorv32_wdt.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_xbus.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/tang_nano_9k.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/uflash.vhd" type="file.vhdl" enable="1"/>
         <File path="src/tang_nano_9k.cst" type="file.cst" enable="1"/>
         <File path="src/tang_nano_9k.sdc" type="file.sdc" enable="1"/>
     </FileList>

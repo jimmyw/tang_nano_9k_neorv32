@@ -1,4 +1,3 @@
--- filepath: /home/jimmy/fpga/gpsdo-nerorv32/gpsdo_nerorv32/src/uflash_controller.vhd
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -8,14 +7,16 @@ entity uflash is
         CLK_FREQ : integer := 5400000
     );
     port (
-        reset_n : in std_logic;
-        clk : in std_logic;
-        sel : in std_logic;
-        wstrb : in std_logic_vector(3 downto 0);
-        addr : in std_logic_vector(14 downto 0);
-        data_i : in std_logic_vector(31 downto 0);
-        ready : out std_logic;
-        data_o : out std_logic_vector(31 downto 0)
+        reset_n : in std_ulogic;
+        clk : in std_ulogic;
+        wb_cyc_i : in std_ulogic;
+        wb_stb_i : in std_ulogic;
+        wb_we_i : in std_ulogic;
+        wb_sel_i : in std_ulogic_vector(3 downto 0);
+        wb_adr_i : in std_ulogic_vector(14 downto 0);
+        wb_dat_i : in std_ulogic_vector(31 downto 0);
+        wb_dat_o : out std_ulogic_vector(31 downto 0);
+        wb_ack_o : out std_ulogic
     );
 end entity uflash;
 
@@ -60,33 +61,41 @@ architecture uflash_rtl of uflash is
     constant W6_CLKS : integer := calc_clks(CLK_FREQ, 6.0e-6);
     constant W7_CLKS : integer := calc_clks(CLK_FREQ, 11.0e-6);
 
-    signal xe    : std_logic := '0';
-    signal ye    : std_logic := '0';
-    signal se    : std_logic := '0';
-    signal erase : std_logic := '0';
-    signal nvstr : std_logic := '0';
-    signal prog  : std_logic := '0';
+    signal xe    : std_ulogic := '0';
+    signal ye    : std_ulogic := '0';
+    signal se    : std_ulogic := '0';
+    signal erase : std_ulogic := '0';
+    signal nvstr : std_ulogic := '0';
+    signal prog  : std_ulogic := '0';
     signal cycle_count : unsigned(23 downto 0) := (others => '0');
 
-    -- Component declaration for FLASH608K
-    component FLASH608K
-        port (
-            DOUT  : out std_logic_vector(31 downto 0);
-            XE    : in std_logic;
-            YE    : in std_logic;
-            SE    : in std_logic;
-            PROG  : in std_logic;
-            ERASE : in std_logic;
-            NVSTR : in std_logic;
-            XADR  : in std_logic_vector(8 downto 0);
-            YADR  : in std_logic_vector(5 downto 0);
-            DIN   : in std_logic_vector(31 downto 0)
-        );
-    end component;
+
+
+    -- Signals for type conversion
+    signal xe_std_logic    : std_logic;
+    signal ye_std_logic    : std_logic;
+    signal se_std_logic    : std_logic;
+    signal erase_std_logic : std_logic;
+    signal nvstr_std_logic : std_logic;
+    signal prog_std_logic  : std_logic;
+    signal wb_adr_i_std_logic : std_logic_vector(14 downto 0);
+    signal wb_dat_i_std_logic : std_logic_vector(31 downto 0);
+    signal wb_dat_o_std_logic : std_logic_vector(31 downto 0);
 
 begin
 
-    ready <= '1' when state = DONE else '0';
+    -- Type conversions
+    xe_std_logic    <= std_logic(xe);
+    ye_std_logic    <= std_logic(ye);
+    se_std_logic    <= std_logic(se);
+    erase_std_logic <= std_logic(erase);
+    nvstr_std_logic <= std_logic(nvstr);
+    prog_std_logic  <= std_logic(prog);
+    wb_adr_i_std_logic <= std_logic_vector(wb_adr_i);
+    wb_dat_i_std_logic <= std_logic_vector(wb_dat_i);
+    wb_dat_o <= std_ulogic_vector(wb_dat_o_std_logic);
+
+    wb_ack_o <= '1' when state = DONE else '0';
 
     process(clk, reset_n)
     begin
@@ -102,17 +111,17 @@ begin
         elsif rising_edge(clk) then
             case state is
                 when IDLE =>
-                    if sel = '1' then
-                        if wstrb = "0000" then
+                    if wb_cyc_i = '1' and wb_stb_i = '1' then
+                        if wb_we_i = '0' then
                             -- Read
                             state <= READ1;
                             xe    <= '1';
                             ye    <= '1';
-                        elsif wstrb = "1111" then
+                        elsif wb_we_i = '1' then
                             -- Write
                             state <= WRITE1;
                             xe    <= '1';
-                        elsif wstrb = "0001" then
+                        elsif wb_sel_i = "0001" then
                             -- Erase
                             ye    <= '0';
                             se    <= '0';
@@ -236,19 +245,18 @@ begin
         end if;
     end process;
 
-    flash_inst : FLASH608K
+    flash_inst : entity work.Gowin_User_Flash
         port map (
-            DOUT => data_o,
-            XE => xe,
-            YE => ye,
-            SE => se,
-            PROG => prog,
-            ERASE => erase,
-            NVSTR => nvstr,
-            XADR => addr(14 downto 6),
-            YADR => addr(5 downto 0),
-            DIN => data_i
+            DOUT => wb_dat_o_std_logic,
+            XE => xe_std_logic,
+            YE => ye_std_logic,
+            SE => se_std_logic,
+            PROG => prog_std_logic,
+            ERASE => erase_std_logic,
+            NVSTR => nvstr_std_logic,
+            XADR => wb_adr_i_std_logic(14 downto 6),
+            YADR => wb_adr_i_std_logic(5 downto 0),
+            DIN => wb_dat_i_std_logic
         );
-
 
 end architecture uflash_rtl;
