@@ -1,3 +1,31 @@
+--   Copyright 2024 Grug Huhler.  License SPDX BSD-2-Clause.
+--   Ported to VHDL by Jimmy Wennlund
+--
+--   This module implements a controller for the user flash on the Tang
+--   Nano 9K FPGA development board.  It also instantiates the
+--   actual flash.  Note: the Tang Nano 20K does not contain user
+--   flash.
+--
+--   See document UG295 "Gowin User Flash".
+--
+--   The Flash is 608 Kbits, 32-bits wide, organized into 304 rows of 64
+--   columns each.  The erase page size is 2048 bytes, so there are
+--   38 pages that may be separately erased.
+--
+--   This controller expects a system clock no more than 40 Mhz.  The
+--   actual clock frequency must be passed to the module via the
+--   CLK_FREQ parameter.
+--
+--   Leave at least 10 millisconds between a write and an erase and do
+--   not write the same address twice without an erase between the writes.
+--   The controller does not enforce these rules.
+--
+--   Reads can be 8, 16, or 32 bits wide.  Erasing is done on a page basis.
+--   To erase a page, do an 8 bit write to a 32-bit aligned address in the
+--   page. To program (write), do a 32-bit write to the address to be
+--   programmed.
+--
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
