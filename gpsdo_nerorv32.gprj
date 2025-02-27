@@ -47,7 +47,6 @@
         <File path="src/neorv32_spi.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_sys.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_sysinfo.vhd" type="file.vhdl" enable="1" library="neorv32"/>
-        <File path="src/neorv32_test_setup_bootloader.vhd" type="file.vhdl" enable="1"/>
         <File path="src/neorv32_top.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_trng.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_twd.vhd" type="file.vhdl" enable="1" library="neorv32"/>
@@ -55,7 +54,8 @@
         <File path="src/neorv32_uart.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_wdt.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/neorv32_xbus.vhd" type="file.vhdl" enable="1" library="neorv32"/>
-        <File path="src/tang-nano-9k_test_setup_bootloader.cst" type="file.cst" enable="1"/>
-        <File path="src/tang-nano-9k_test_setup_bootloader.sdc" type="file.sdc" enable="1"/>
+        <File path="src/tang_nano_9k.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/tang_nano_9k.cst" type="file.cst" enable="1"/>
+        <File path="src/tang_nano_9k.sdc" type="file.sdc" enable="1"/>
     </FileList>
 </Project>

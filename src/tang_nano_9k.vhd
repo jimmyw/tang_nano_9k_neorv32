@@ -40,7 +40,7 @@ entity tang_nano_9k is
   );
 end entity;
 
-architecture neorv32_test_setup_bootloader_rtl of tang_nano_9k is
+architecture tang_nano_9k_rtl of tang_nano_9k is
 
   signal con_gpio_out : std_ulogic_vector(31 downto 0);
 
