@@ -118,7 +118,7 @@ begin
     wb_stb_i => xbus_stb_o,
     wb_we_i => xbus_we_o,
     wb_sel_i => xbus_sel_o,
-    wb_adr_i => xbus_adr_o(14 downto 0),
+    wb_adr_i => xbus_adr_o(16 downto 2),
     wb_dat_o => uflash_dat_i,
     wb_dat_i => xbus_dat_o,
     wb_ack_o => uflash_ack_i
