@@ -149,9 +149,10 @@ begin
     IO_GPIO_NUM       => 6,                 -- number of GPIO input/output pairs (0..32)
     IO_CLINT_EN       => true,              -- implement core local interruptor (CLINT)?
     IO_UART0_EN       => true,              -- implement primary universal asynchronous receiver/transmitter (UART0)?
-    OCD_EN        => true,               -- implement JTAG interface
+    OCD_EN            => true,               -- implement JTAG interface
 
-    XBUS_EN      => true              -- implement X-Bus interface
+    XBUS_EN           => true,              -- implement X-Bus interface
+    XBUS_TIMEOUT      => 0                  -- Disable timeout, flash erase can take a long time
   )
   port map (
     -- Global control --
