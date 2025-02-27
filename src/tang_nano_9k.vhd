@@ -86,7 +86,7 @@ begin
              '1'; -- default to err if no slave is selected
 
   xbus_dat_i <= uflash_dat_i when (sel_uflash = '1') else
-             (others => '0'); -- default to 0 if no slave is selected
+             x"deadbeef"; -- default to 0 if no slave is selected
 
   uflash_inst: entity work.uflash
   generic map (
@@ -102,7 +102,8 @@ begin
     wb_adr_i => xbus_adr_o(16 downto 2),
     wb_dat_o => uflash_dat_i,
     wb_dat_i => xbus_dat_o,
-    wb_ack_o => uflash_ack_i
+    wb_ack_o => uflash_ack_i,
+    wb_err_o => uflash_err_i
   );
 
 

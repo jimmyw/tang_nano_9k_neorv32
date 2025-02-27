@@ -44,7 +44,8 @@ entity uflash is
         wb_adr_i : in std_ulogic_vector(14 downto 0);
         wb_dat_i : in std_ulogic_vector(31 downto 0);
         wb_dat_o : out std_ulogic_vector(31 downto 0);
-        wb_ack_o : out std_ulogic
+        wb_ack_o : out std_ulogic;
+        wb_err_o : out std_ulogic
     );
 end entity uflash;
 
@@ -136,6 +137,7 @@ begin
             nvstr       <= '0';
             prog        <= '0';
             cycle_count <= (others => '0');
+            wb_err_o    <= '0';
         elsif rising_edge(clk) then
             case state is
                 when IDLE =>
@@ -145,21 +147,24 @@ begin
                             state <= READ1;
                             xe    <= '1';
                             ye    <= '1';
-                        elsif wb_we_i = '1' then
-                            -- Write
-                            state <= WRITE1;
-                            xe    <= '1';
-                        elsif wb_sel_i = "0001" then
-                            -- Erase
-                            ye    <= '0';
-                            se    <= '0';
-                            xe    <= '1';
-                            erase <= '0';
-                            nvstr <= '0';
-                            state <= ERASE1;
                         else
-                            -- Unsupported
-                            state <= DONE;
+                            if wb_sel_i = "0001" then
+                                -- Erase
+                                ye    <= '0';
+                                se    <= '0';
+                                xe    <= '1';
+                                erase <= '0';
+                                nvstr <= '0';
+                                state <= ERASE1;
+                            elsif wb_sel_i = "1111" then
+                                -- Write
+                                state <= WRITE1;
+                                xe    <= '1';
+                            else
+                                -- Error
+                                state <= DONE;
+                                wb_err_o <= '1';
+                            end if;
                         end if;
                     else
                         state <= IDLE;
@@ -170,6 +175,7 @@ begin
                 when READ2 =>
                     se    <= '0';
                     state <= DONE;
+                    wb_err_o <= '0';
                 when ERASE1 =>
                     state       <= ERASE2;
                     cycle_count <= (others => '0');
@@ -260,6 +266,7 @@ begin
                         state       <= DONE;
                         cycle_count <= (others => '0');
                         xe          <= '0';
+                        wb_err_o <= '0';
                     end if;
                 when DONE =>
                     state <= IDLE;
@@ -269,6 +276,7 @@ begin
                     erase <= '0';
                     nvstr <= '0';
                     prog  <= '0';
+                    wb_err_o <= '0';
             end case;
         end if;
     end process;

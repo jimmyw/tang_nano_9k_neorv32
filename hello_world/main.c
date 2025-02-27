@@ -24,6 +24,39 @@ void uart_print_x8(uint8_t val) {
     neorv32_uart0_putc("0123456789abcdef"[buf[--i]]);
   }
 }
+
+void dump_flash() {
+  uint8_t *ptr = (uint8_t *)0x90000000;
+  uint8_t *ptr_end = (uint8_t *)0x90000000 + (1024 * 2);
+  while (ptr < ptr_end) {
+    neorv32_uart0_printf("[%x]: ", ptr);
+    for (int j = 0; j < 32; j++) {
+      uart_print_x8(*ptr++);
+      neorv32_uart0_puts(" ");
+    }
+    neorv32_uart0_puts("\n");
+  }
+}
+
+void erase_flash() {
+  uint8_t *ptr = (uint8_t *)0x90000000;
+  for (int i = 0; i < 38; i++) {
+    neorv32_uart0_printf("[%x] \n", ptr);
+    *ptr = 0;
+    ptr += 2048;
+  }
+}
+
+// Flash needs to be written in 32-bit words
+void write_flash() {
+  uint32_t *ptr = (uint32_t *)0x90000000;
+  for (int i = 0; i < (1024 / 4); i++) {
+    neorv32_uart0_printf("[%x] \n", ptr);
+    *ptr = 0x12345678;
+    ptr++;
+  }
+}
+
 int main() {
 
   // capture all exceptions and give debug info via UART
@@ -39,37 +72,22 @@ int main() {
   // say hello
   neorv32_uart0_puts("Hello world! :)\n");
 
-  uint8_t *ptr = (uint8_t *)0x90000000;
-  uint8_t *ptr_end = (uint8_t *)0x90000000 + (1024 * 5);
-  while (ptr < ptr_end) {
-    neorv32_uart0_printf("[%x]: ", ptr);
-    for (int j = 0; j < 32; j++) {
-      uart_print_x8(*ptr++);
-      neorv32_uart0_puts(" ");
-    }
-    neorv32_uart0_puts("\n");
-  }
+  dump_flash();
 
   neorv32_uart0_puts("Erasing flash... \n");
-  ptr = (uint8_t *)0x90000000;
-  for (int i = 0; i < 38; i++) {
-    neorv32_uart0_printf("[%x] \n", ptr);
-    *ptr = 0;
-    ptr += 2048;
-  }
+
+  erase_flash();
+
+  neorv32_uart0_puts("Dumping again.\n");
+  dump_flash();
+
+  neorv32_uart0_puts("Write new stuff\n");
+
+  write_flash();
 
   neorv32_uart0_puts("Dumping again :(\n");
-  ptr = (uint8_t *)0x90000000;
-  ptr_end = (uint8_t *)0x90000000 + (1024 * 5);
-  while (ptr < ptr_end) {
-    neorv32_uart0_printf("[%x]: ", ptr);
-    for (int j = 0; j < 32; j++) {
-      neorv32_uart0_puts("0x");
-      uart_print_x8(*ptr++);
-      neorv32_uart0_puts(" ");
-    }
-    neorv32_uart0_puts("\n");
-  }
+  dump_flash();
+
   neorv32_uart0_puts("Bye! :(\n");
 
   return 0;
