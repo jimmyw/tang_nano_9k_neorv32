@@ -15,7 +15,7 @@ use ieee.numeric_std.all;
 library neorv32;
 use neorv32.neorv32_package.all;
 
-entity neorv32_test_setup_bootloader is
+entity tang_nano_9k is
   generic (
     -- adapt these for your setup --
     CLOCK_FREQUENCY   : natural := 27000000;  -- clock frequency of clk_i in Hz
@@ -40,7 +40,7 @@ entity neorv32_test_setup_bootloader is
   );
 end entity;
 
-architecture neorv32_test_setup_bootloader_rtl of neorv32_test_setup_bootloader is
+architecture neorv32_test_setup_bootloader_rtl of tang_nano_9k is
 
   signal con_gpio_out : std_ulogic_vector(31 downto 0);
 
