@@ -20,7 +20,10 @@ entity tang_nano_9k is
     -- adapt these for your setup --
     CLOCK_FREQUENCY   : natural := 27000000;  -- clock frequency of clk_i in Hz
     MEM_INT_IMEM_SIZE : natural := 16*1024;   -- size of processor-internal instruction memory in bytes
-    MEM_INT_DMEM_SIZE : natural := 8*1024     -- size of processor-internal data memory in bytes
+    MEM_INT_DMEM_SIZE : natural := 8*1024;     -- size of processor-internal data memory in bytes
+    SLAVE_A_BASE : std_logic_vector(31 downto 0) := x"90000000";
+    SLAVE_A_SIZE : std_logic_vector(31 downto 0) := x"00001000" -- 4KB
+
   );
   port (
     -- Global control --
@@ -45,7 +48,7 @@ architecture top_rtl of tang_nano_9k is
   signal con_gpio_out : std_ulogic_vector(31 downto 0);
 
 
-  --
+  -- Xbus signals
   signal xbus_adr_o : std_ulogic_vector(31 downto 0);
   signal xbus_dat_o : std_ulogic_vector(31 downto 0);
   signal xbus_tag_o : std_ulogic_vector(2 downto 0);
@@ -57,8 +60,52 @@ architecture top_rtl of tang_nano_9k is
   signal xbus_ack_i : std_ulogic;
   signal xbus_err_i : std_ulogic;
 
+  -- Xbus interconnect
+  signal sel_uflash    : std_logic := '0';
+
+
+  -- Slave A signals
+  signal uflash_ack_i : std_logic;
+  signal uflash_err_i : std_logic := '0';
+  signal uflash_dat_i : std_logic_vector(31 downto 0);
 
 begin
+
+ process(xbus_adr_o)
+    variable addr : unsigned(31 downto 0);
+    variable uflash_base : unsigned(31 downto 0);
+    variable uflash_end  : unsigned(31 downto 0);
+
+
+  begin
+    -- Convert generics and input address to unsigned for easy compare
+    addr := unsigned(xbus_adr_o);
+
+    uflash_base := unsigned(SLAVE_A_BASE);
+    -- uflash_end = uflash_base + SLAVE_A_SIZE - 1
+    uflash_end  := unsigned(SLAVE_A_BASE) + unsigned(SLAVE_A_SIZE) - 1;
+
+
+    -- Default to not selecting any slave
+    sel_uflash   <= '0';
+
+    -- Check if address is in uflash range
+    if (addr >= uflash_base) and (addr <= uflash_end) then
+      sel_uflash <= '1';
+    end if;
+  end process;
+
+
+
+  -- Connect the Xbus signals to the selected slave, or default to err if no slave is selected
+  xbus_ack_i <= uflash_ack_i when (sel_uflash = '1') else
+             '1';
+
+  xbus_err_i <= uflash_err_i when (sel_uflash = '1') else
+             '1'; -- default to err if no slave is selected
+
+  xbus_dat_i <= uflash_dat_i when (sel_uflash = '1') else
+             (others => '0'); -- default to 0 if no slave is selected
 
   uflash_inst: entity work.uflash
   generic map (
@@ -72,9 +119,9 @@ begin
     wb_we_i => xbus_we_o,
     wb_sel_i => xbus_sel_o,
     wb_adr_i => xbus_adr_o(14 downto 0),
-    wb_dat_o => xbus_dat_i,
+    wb_dat_o => uflash_dat_i,
     wb_dat_i => xbus_dat_o,
-    wb_ack_o => xbus_ack_i
+    wb_ack_o => uflash_ack_i
   );
 
 
@@ -110,8 +157,10 @@ begin
     -- Global control --
     clk_i       => clk_i,        -- global clock, rising edge
     rstn_i      => rstn_i,       -- global reset, low-active, async
+
     -- GPIO (available if IO_GPIO_NUM > 0) --
     gpio_o      => con_gpio_out, -- parallel output
+
     -- primary UART0 (available if IO_UART0_EN = true) --
     uart0_txd_o => uart0_txd_o,  -- UART0 send data
     uart0_rxd_i => uart0_rxd_i,   -- UART0 receive data
@@ -122,7 +171,7 @@ begin
     jtag_tdo_o => jtag_tdo_o,                                 -- serial data output
     jtag_tms_i => jtag_tms_i,                                 -- mode select
 
-
+    -- Xbus signals
     xbus_adr_o => xbus_adr_o,
     xbus_dat_o => xbus_dat_o,
     xbus_tag_o => xbus_tag_o,
