@@ -50,6 +50,26 @@ int main() {
     neorv32_uart0_puts("\n");
   }
 
+  neorv32_uart0_puts("Erasing flash... \n");
+  ptr = (uint8_t *)0x90000000;
+  for (int i = 0; i < 38; i++) {
+    neorv32_uart0_printf("[%x] \n", ptr);
+    *ptr = 0;
+    ptr += 2048;
+  }
+
+  neorv32_uart0_puts("Dumping again :(\n");
+  ptr = (uint8_t *)0x90000000;
+  ptr_end = (uint8_t *)0x90000000 + (1024 * 5);
+  while (ptr < ptr_end) {
+    neorv32_uart0_printf("[%x]: ", ptr);
+    for (int j = 0; j < 32; j++) {
+      neorv32_uart0_puts("0x");
+      uart_print_x8(*ptr++);
+      neorv32_uart0_puts(" ");
+    }
+    neorv32_uart0_puts("\n");
+  }
   neorv32_uart0_puts("Bye! :(\n");
 
   return 0;
