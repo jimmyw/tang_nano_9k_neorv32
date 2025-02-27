@@ -22,7 +22,7 @@ entity tang_nano_9k is
     MEM_INT_IMEM_SIZE : natural := 16*1024;   -- size of processor-internal instruction memory in bytes
     MEM_INT_DMEM_SIZE : natural := 8*1024;     -- size of processor-internal data memory in bytes
     SLAVE_A_BASE : std_logic_vector(31 downto 0) := x"90000000";
-    SLAVE_A_SIZE : std_logic_vector(31 downto 0) := x"00001000" -- 4KB
+    SLAVE_A_SIZE : std_logic_vector(31 downto 0) := x"00013000" -- 38 pages * 2048 bytes
 
   );
   port (

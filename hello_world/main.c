@@ -44,7 +44,6 @@ int main() {
   while (ptr < ptr_end) {
     neorv32_uart0_printf("[%x]: ", ptr);
     for (int j = 0; j < 32; j++) {
-      neorv32_uart0_puts("0x");
       uart_print_x8(*ptr++);
       neorv32_uart0_puts(" ");
     }
