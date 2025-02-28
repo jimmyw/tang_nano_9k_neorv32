@@ -1,5 +1,11 @@
---   Copyright 2024 Grug Huhler.  License SPDX BSD-2-Clause.
---   Ported to VHDL by Jimmy Wennlund
+--   Copyright 2024 Grug Huhler, 2025 Jimmy Wennlund.
+--   License SPDX BSD-2-Clause.
+--
+--   Rewritten in VHDL from the original Verilog, and ported to
+--   the generic Wishbone b4 bus by Jimmy Wennlund
+--
+--
+--   Original authors notes:
 --
 --   This module implements a controller for the user flash on the Tang
 --   Nano 9K FPGA development board.  It also instantiates the
