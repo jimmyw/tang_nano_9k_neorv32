@@ -53,7 +53,7 @@ Note, when flashing directly, you need the raw binary!
 ## Getting Started
 
 1. Clone the repository.
-2. Update the pinout to where you have your uart and JTAG debugger connected on. I dont use the exiting serial chip, but a external serial adapter that i found more reliable.
+2. Update the pinout to where you have your uart and JTAG debugger connected on.
 3. Build the NEORV32 core and generate the bitstream using GOWIN FPGA Designer.
 4. Program the FPGA with the generated bitstream.
 5. Use either `uart_upload.py` or `openFPGALoader` to program the user flash space with your NEORV32 executable.
