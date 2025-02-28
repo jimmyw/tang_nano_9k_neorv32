@@ -1,16 +1,18 @@
 
 # NEORV32 Core with Extended User Flash as Instruction Memory
 
-This project implements a NEORV32 core with extended user flash memory used as instruction memory. The user flash space can be directly programmed using either the `uart_upload.py` script or the `openFPGALoader` tool.
+This project implements a NEORV32 powered by [Gowin's GW1NR-9](https://www.gowinsemi.com/en/product/detail/49/) FPGA chip core with extended user flash memory (78kb) used as instruction memory for your program. The user flash space can be directly programmed using either the `uart_upload.py` script or the `openFPGALoader` tool.
 
 It can be tested on the [Tang Nano 9k FPGA development board](https://wiki.sipeed.com/hardware/en/tang/Tang-Nano-9K/Nano-9K.html).
 
 ## Features
 
 - NEORV32 core implementation
-- Extended user flash memory used as instruction memory
-- Direct programming of user flash space
-- Default configuration have enabled JTAG, GPIO and UART
+- Extended user flash memory used as instruction memory without first copy to ram, this gives you 38 * 2048 bytes for your program.
+- Direct programming of user flash space from the bootloader over uart.
+- Flash pages can also be erased from the application, and be written on the go.
+- Default configuration have enabled JTAG, GPIO and UART.
+- No propriary Gowin IP is used in this repo, you own all the sources.
 
 ## Programming the User Flash
 
