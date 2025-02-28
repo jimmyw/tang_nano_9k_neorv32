@@ -281,6 +281,20 @@ void dump_flash() {
   }
 }
 
+void erase_flash()
+{
+  // erase_flash
+  PRINT_TEXT("Erasing flash\n\n");
+  uint8_t *ptr = (uint8_t *)0x0;
+  for (int i = 0; i < 38; i++) {
+    PRINT_PUTC('.');
+    *ptr = 0;
+    ptr += 2048;
+  }
+  PRINT_TEXT("\n\n");
+}
+
+
 /**********************************************************************//**
  * Bootloader main.
  **************************************************************************/
@@ -378,7 +392,7 @@ int main(void) {
         #endif
         PRINT_TEXT("\n");
         start_app();
-        while(1);
+        break;
       }
 
     }
@@ -415,6 +429,8 @@ int main(void) {
       get_exe(EXE_STREAM_UART);
     } else if (c == 'd') {
       dump_flash();
+    } else if (c == 'e') {
+      erase_flash();
     }
 #if (SPI_EN != 0)
     else if (c == 's') { // program flash from memory (IMEM)
@@ -429,7 +445,7 @@ int main(void) {
       get_exe(EXE_STREAM_TWI);
     }
 #endif
-    else if (c == 'e') { // start application program from IMEM
+    else if (c == 'x' || c == ' ') { // start application program from IMEM
       start_app(); // run app from IMEM
     }
     else { // unknown command
@@ -452,6 +468,7 @@ void print_help(void) {
              " r: Restart\n"
              " u: Upload\n"
              " d: Dump\n"
+             " e: erase\n"
 #if (SPI_EN != 0)
              " s: Store to flash\n"
              " l: Load from flash\n"
@@ -459,7 +476,7 @@ void print_help(void) {
 #if (TWI_EN != 0)
              " t: Load from TWI Device\n"
 #endif
-             " e: Execute");
+             " x: Execute");
 }
 
 
