@@ -38,9 +38,27 @@ def main():
 
     try:
         # Abort autoboot sequence
+        print("Aborting autoboot...", end='')
         ser.write(b' ')
+        while True:
+            response = ser.read_all().decode(errors='ignore')
+            print(response)
+
+            if "CMD:>" in response:
+                break
+
+        # Erase flash memory
+        print("Erasing flash memory...", end='')
+        ser.write(b'e')
+        while True:
+            time.sleep(0.5)
+            response = ser.read_all().decode(errors='ignore')
+            print(response)
+            if "CMD:>" in response:
+                break
 
         # Execute upload command and get response
+        print("Starting upload...", end='')
         ser.write(b'u')
         time.sleep(0.5)
         response = ser.read_all().decode(errors='ignore')
@@ -76,10 +94,12 @@ def main():
             print(" FAILED!")
             ser.close()
             sys.exit(1)
-        else:
-            print(" OK")
-            ser.close()
-            sys.exit(0)
+
+        print ("Booting application...", end='')
+        ser.write(b'x')
+        print(" OK")
+        ser.close()
+        sys.exit(0)
 
     except Exception as e:
         print(f"Error during upload: {e}")
