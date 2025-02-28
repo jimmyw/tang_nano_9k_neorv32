@@ -1,2 +1,10 @@
 impl
 .vscode
+
+*.asm
+*.elf
+*.bin
+*.coe
+*.hex
+*.mif
+*.mem
