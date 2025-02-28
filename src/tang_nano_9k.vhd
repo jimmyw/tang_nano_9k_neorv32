@@ -19,10 +19,10 @@ entity tang_nano_9k is
   generic (
     -- adapt these for your setup --
     CLOCK_FREQUENCY   : natural := 27000000;  -- clock frequency of clk_i in Hz
-    MEM_INT_IMEM_SIZE : natural := 16*1024;   -- size of processor-internal instruction memory in bytes
+    MEM_INT_IMEM_SIZE : natural := 0;   -- size of processor-internal instruction memory in bytes
     MEM_INT_DMEM_SIZE : natural := 8*1024;     -- size of processor-internal data memory in bytes
-    UFLASH_BASE : std_logic_vector(31 downto 0) := x"90000000";
-    UFLASH_END : std_logic_vector(31 downto 0) :=  x"90013000" -- 38 pages * 2048 bytes
+    UFLASH_BASE : std_logic_vector(31 downto 0) := x"00000000";
+    UFLASH_END : std_logic_vector(31 downto 0) :=  x"00013000" -- 38 pages * 2048 bytes
 
   );
   port (
@@ -122,7 +122,7 @@ begin
     RISCV_ISA_M       => true,              -- implement mul/div extension?
     RISCV_ISA_Zicntr  => true,              -- implement base counters?
     -- Internal Instruction memory --
-    MEM_INT_IMEM_EN   => true,              -- implement processor-internal instruction memory
+    MEM_INT_IMEM_EN   => false,              -- implement processor-internal instruction memory
     MEM_INT_IMEM_SIZE => MEM_INT_IMEM_SIZE, -- size of processor-internal instruction memory in bytes
     -- Internal Data memory --
     MEM_INT_DMEM_EN   => true,              -- implement processor-internal data memory

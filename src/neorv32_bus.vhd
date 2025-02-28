@@ -27,8 +27,8 @@ entity neorv32_bus_switch is
     a_rsp_o : out bus_rsp_t;  -- host port A response bus
     b_req_i : in  bus_req_t;  -- host port B request bus
     b_rsp_o : out bus_rsp_t;  -- host port B response bus
-    x_req_o : out bus_req_t;  -- device port request bus
-    x_rsp_i : in  bus_rsp_t   -- device port response bus
+    x_req_o : out bus_req_t;  -- device port request bus XBUS
+    x_rsp_i : in  bus_rsp_t   -- device port response bus XBUS
   );
 end neorv32_bus_switch;
 
