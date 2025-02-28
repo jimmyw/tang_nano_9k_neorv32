@@ -354,7 +354,7 @@ int main(void) {
   // ------------------------------------------------
   // Auto boot sequence
   // ------------------------------------------------
-#if (SPI_EN != 0 || TWI_EN != 0)
+#if (SPI_EN != 0 || TWI_EN != 0 || 1)
 #if (AUTO_BOOT_TIMEOUT != 0)
   if (neorv32_clint_available()) {
 
