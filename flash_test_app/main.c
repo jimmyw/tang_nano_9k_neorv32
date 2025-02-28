@@ -3,7 +3,7 @@
 #include <neorv32.h>
 
 /** UART BAUD rate */
-#define BAUD_RATE 19200
+#define BAUD_RATE 115200
 
 void uart_print_x8(uint8_t val) {
   char buf[3];

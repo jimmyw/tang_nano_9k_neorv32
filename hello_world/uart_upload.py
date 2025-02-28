@@ -11,7 +11,7 @@ def print_usage():
 def configure_serial_port(port):
     ser = serial.Serial(
         port=port,
-        baudrate=19200,
+        baudrate=115200,
         bytesize=serial.EIGHTBITS,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
