@@ -65,9 +65,9 @@ architecture top_rtl of tang_nano_9k is
 
 
   -- Slave A signals
-  signal uflash_ack_i : std_logic;
-  signal uflash_err_i : std_logic := '0';
-  signal uflash_dat_i : std_logic_vector(31 downto 0);
+  signal uflash_ack_i : std_ulogic;
+  signal uflash_err_i : std_ulogic := '0';
+  signal uflash_dat_i : std_ulogic_vector(31 downto 0);
 
 begin
 
