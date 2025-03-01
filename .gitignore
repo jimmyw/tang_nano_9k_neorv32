@@ -9,3 +9,6 @@ impl
 *.mif
 *.mem
 build
+
+flash_test_app/neorv32_application_image.vhd
+hello_world/neorv32_application_image.vhd
