@@ -15,7 +15,7 @@ use ieee.numeric_std.all;
 library neorv32;
 use neorv32.neorv32_package.all;
 
-entity tang_nano_9k is
+entity gpsdo_neorv32 is
 
 -- Memory map:
 -- 0x00000000 - 0x00013000: 76kb uFlash (Gowin User Flash)
@@ -47,7 +47,7 @@ entity tang_nano_9k is
   );
 end entity;
 
-architecture top_rtl of tang_nano_9k is
+architecture top_rtl of gpsdo_neorv32 is
 
   signal con_gpio_out : std_ulogic_vector(31 downto 0);
 

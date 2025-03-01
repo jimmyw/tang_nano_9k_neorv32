@@ -41,7 +41,7 @@ You can also use the `openFPGALoader` tool to program the user flash space direc
 #### Command
 
 ```sh
-openFPGALoader -f impl/pnr/tang_nano_9k.fs --user-flash hello_world/neorv32_raw_exe.bin
+openFPGALoader -f impl/pnr/gpsdo_nerorv32.fs --user-flash hello_world/neorv32_raw_exe.bin
 ```
 
 Note, when flashing directly, you need the raw binary!
