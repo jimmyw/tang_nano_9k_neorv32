@@ -4,27 +4,27 @@
 
 // These are all the leds on the 9K board
 IO_LOC "gpio_o[0]" 10;
-IO_PORT "gpio_o[0]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
+IO_PORT "gpio_o[0]" IO_TYPE=LVCMOS18 DRIVE=8;
 IO_LOC "gpio_o[1]" 11;
-IO_PORT "gpio_o[1]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
+IO_PORT "gpio_o[1]" IO_TYPE=LVCMOS18 DRIVE=8;
 IO_LOC "gpio_o[2]" 13;
-IO_PORT "gpio_o[2]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
+IO_PORT "gpio_o[2]" IO_TYPE=LVCMOS18 DRIVE=8;
 IO_LOC "gpio_o[3]" 14;
-IO_PORT "gpio_o[3]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
+IO_PORT "gpio_o[3]" IO_TYPE=LVCMOS18 DRIVE=8;
 IO_LOC "gpio_o[4]" 15;
-IO_PORT "gpio_o[4]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
+IO_PORT "gpio_o[4]" IO_TYPE=LVCMOS18 DRIVE=8;
 IO_LOC "gpio_o[5]" 16;
-IO_PORT "gpio_o[5]" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3;
+IO_PORT "gpio_o[5]" IO_TYPE=LVCMOS18 DRIVE=8;
 
 IO_LOC "uart0_rxd_i" 18;
-IO_PORT "uart0_rxd_i" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
+IO_PORT "uart0_rxd_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 IO_LOC "uart0_txd_o" 17;
-IO_PORT "uart0_txd_o" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8 BANK_VCCIO=3.3;
+IO_PORT "uart0_txd_o" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;
 
 IO_LOC "rstn_i" 3;
-IO_PORT "rstn_i" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
+IO_PORT "rstn_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 IO_LOC "clk_i" 52;
-IO_PORT "clk_i" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
+IO_PORT "clk_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 
 
 // JTAG
@@ -33,13 +33,13 @@ IO_PORT "clk_i" IO_TYPE=LVCMOS33 PULL_MODE=UP BANK_VCCIO=3.3;
 //    jtag_tdo_o     : out std_ulogic;                                 -- serial data output
 //    jtag_tms_i     : in  std_ulogic;                                 -- mode select
 IO_LOC "jtag_tck_i" 29;
-IO_PORT "jtag_tck_i" IO_TYPE=LVCMOS33 BANK_VCCIO=3.3 PULL_MODE=UP
+IO_PORT "jtag_tck_i" IO_TYPE=LVCMOS33 PULL_MODE=UP
 
 IO_LOC "jtag_tdi_i" 30;
-IO_PORT "jtag_tdi_i" IO_TYPE=LVCMOS33 BANK_VCCIO=3.3 PULL_MODE=UP
+IO_PORT "jtag_tdi_i" IO_TYPE=LVCMOS33 PULL_MODE=UP
 
 IO_LOC "jtag_tdo_o" 33;
-IO_PORT "jtag_tdo_o" IO_TYPE=LVCMOS33 DRIVE=8 BANK_VCCIO=3.3
+IO_PORT "jtag_tdo_o" IO_TYPE=LVCMOS33 DRIVE=8
 
 IO_LOC "jtag_tms_i" 34;
-IO_PORT "jtag_tms_i" IO_TYPE=LVCMOS33 BANK_VCCIO=3.3 PULL_MODE=UP
+IO_PORT "jtag_tms_i" IO_TYPE=LVCMOS33 PULL_MODE=UP
