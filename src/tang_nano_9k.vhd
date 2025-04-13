@@ -16,11 +16,15 @@ library neorv32;
 use neorv32.neorv32_package.all;
 
 entity tang_nano_9k is
+
+-- Memory map:
+-- 0x00000000 - 0x00013000: 76kb uFlash (Gowin User Flash)
+-- 0x80000000 - 0x80008000: 32kb SRAM (Gowin User SRAM)
   generic (
     -- adapt these for your setup --
     CLOCK_FREQUENCY   : natural := 27000000;  -- clock frequency of clk_i in Hz
     MEM_INT_IMEM_SIZE : natural := 0;   -- size of processor-internal instruction memory in bytes
-    MEM_INT_DMEM_SIZE : natural := 8*1024;     -- size of processor-internal data memory in bytes
+    MEM_INT_DMEM_SIZE : natural := 32*1024;     -- size of processor-internal data memory in bytes
     UFLASH_BASE : std_logic_vector(31 downto 0) := x"00000000";
     UFLASH_END : std_logic_vector(31 downto 0) :=  x"00013000" -- 38 pages * 2048 bytes
 
