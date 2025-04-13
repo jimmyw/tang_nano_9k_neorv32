@@ -8,6 +8,7 @@ impl
 *.hex
 *.mif
 *.mem
+*.cache
 build
 
 flash_test_app/neorv32_application_image.vhd
