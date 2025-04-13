@@ -16,9 +16,9 @@ IO_PORT "gpio_o[4]" IO_TYPE=LVCMOS18 DRIVE=8;
 IO_LOC "gpio_o[5]" 16;
 IO_PORT "gpio_o[5]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "uart0_rxd_i" 18;
+IO_LOC "uart0_rxd_i" 31;
 IO_PORT "uart0_rxd_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
-IO_LOC "uart0_txd_o" 17;
+IO_LOC "uart0_txd_o" 32;
 IO_PORT "uart0_txd_o" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;
 
 IO_LOC "rstn_i" 3;
