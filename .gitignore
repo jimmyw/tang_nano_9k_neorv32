@@ -8,4 +8,5 @@ impl
 *.hex
 *.mif
 *.mem
+*.cache
 build

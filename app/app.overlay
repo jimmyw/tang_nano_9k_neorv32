@@ -1,0 +1,21 @@
+
+/*
+&cpu0 {
+    clock-frequency = <DT_FREQ_M(27)>;
+};
+*/
+
+
+&uart0 {
+    current-speed = <115200>;
+    reg = <0xfff50000 8>;
+};
+
+&imem {
+    reg = <0x00000000 DT_SIZE_K(76)>;
+};
+
+&dmem {
+    reg = <0x80000000 DT_SIZE_K(32)>;
+};
+
