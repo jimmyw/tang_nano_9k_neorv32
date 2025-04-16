@@ -1,5 +1,5 @@
 
-# NEORV32 Core with Extended User Flash as Instruction Memory
+# NEORV32 Core with Extended User Flash as Instruction Memory running Zephyr
 
 This project implements a NEORV32 powered by [Gowin's GW1NR-9](https://www.gowinsemi.com/en/product/detail/49/) FPGA chip core with extended user flash memory (78kb) used as instruction memory for your program. The user flash space can be directly programmed using either the `uart_upload.py` script or the `openFPGALoader` tool.
 
@@ -13,6 +13,8 @@ It can be tested on the [Tang Nano 9k FPGA development board](https://wiki.sipee
 - Flash pages can also be erased from the application, and be written on the go.
 - Default configuration have enabled JTAG, GPIO and UART.
 - No propriary Gowin IP is used in this repo, you own all the sources.
+- Runs Zephyr!!
+- Modified bootloader that supports flashing user space part directly from uart.
 
 ## Programming the User Flash
 
@@ -68,6 +70,12 @@ Note, when flashing directly, you need the raw binary!
 ### `openFPGALoader`
 
 Install the `openFPGALoader` tool by following the instructions on the [openFPGALoader GitHub page](https://github.com/trabucayre/openFPGALoader).
+
+### Zephyr app
+
+One of the coolest feature with this soft core, is that you have a zephyr compatible enviroment at your hands. A simple blinky togheter with a uart shell can be found under app.
+
+Build these as a normal zephyr app, and use `openFPGALoader` or `uart_upload.py` tool to upload it, the samy way as the hello_world example
 
 ## License
 
