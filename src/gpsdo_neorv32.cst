@@ -26,6 +26,8 @@ IO_PORT "rstn_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 IO_LOC "clk_i" 52;
 IO_PORT "clk_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 
+//IO_LOC  "reset_button" 4;
+//IO_PORT "reset_button" IO_TYPE=LVCMOS18 PULL_MODE=UP;
 
 // JTAG
 //    jtag_tck_i     : in  std_ulogic;                                 -- serial clock
@@ -43,3 +45,21 @@ IO_PORT "jtag_tdo_o" IO_TYPE=LVCMOS33 DRIVE=8
 
 IO_LOC "jtag_tms_i" 34;
 IO_PORT "jtag_tms_i" IO_TYPE=LVCMOS33 PULL_MODE=UP
+
+//IO_LOC  "i2c_scl" 27;
+//IO_PORT "i2c_scl" IO_TYPE=LVCMOS33;
+
+//IO_LOC  "i2c_sda" 28;
+//IO_PORT "i2c_sda" IO_TYPE=LVCMOS33;
+
+IO_LOC  "pps_in" 53;
+IO_PORT "pps_in" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+
+IO_LOC  "tcxo_in" 51;
+IO_PORT "tcxo_in" IO_TYPE=LVCMOS33;
+
+//IO_LOC  "pll_out" 42;
+//IO_PORT "pll_out" IO_TYPE=LVCMOS33;
+
+//IO_LOC  "pps_pulse_out" 63;
+//IO_PORT "pps_pulse_out" DRIVE=8 IO_TYPE=LVCMOS33;

@@ -5,19 +5,19 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity pps_wrapper is
     port (
-        clk_in         : in  std_logic;  -- The 9MHz clock
-        clk            : in  std_logic;  -- The system clock
-        reset_n        : in  std_logic;
-        sel            : in  std_logic;
-        addr           : in  std_logic_vector(2 downto 0);  -- Word address
-        is_write       : in  std_logic;
-        data_i         : in  std_logic_vector(31 downto 0);
-        ready          : out std_logic;
-        data_o         : out std_logic_vector(31 downto 0);
-        tcxo_in        : in  std_logic;
-        pps_in         : in  std_logic;
-        pps_pulse_out  : out std_logic;
-        pll_out        : out std_logic
+        clk_in         : in  std_ulogic;  -- The 9MHz clock
+        clk            : in  std_ulogic;  -- The system clock
+        reset_n        : in  std_ulogic;
+        sel            : in  std_ulogic;
+        addr           : in  std_ulogic_vector(2 downto 0);  -- Word address
+        is_write       : in  std_ulogic;
+        data_i         : in  std_ulogic_vector(31 downto 0);
+        ready          : out std_ulogic;
+        data_o         : out std_ulogic_vector(31 downto 0);
+        tcxo_in        : in  std_ulogic;
+        pps_in         : in  std_ulogic;
+        pps_pulse_out  : out std_ulogic;
+        pll_out        : out std_ulogic
     );
 end pps_wrapper;
 
@@ -28,18 +28,20 @@ architecture Behavioral of pps_wrapper is
     signal state : state_type;
 
     -- Signals
-    signal tcxo_clk         : std_logic;
-    signal from_pps_wr_en   : std_logic;
-    signal from_pps_rd_en   : std_logic := '0';
-    signal from_pps_empty   : std_logic;
-    signal from_pps_full    : std_logic;
-    signal to_pps_wr_en     : std_logic := '0';
-    signal to_pps_rd_en     : std_logic;
-    signal to_pps_empty     : std_logic;
-    signal to_pps_full      : std_logic;
-    signal data_from_pps    : std_logic_vector(31 downto 0);
-    signal data_to_pps      : std_logic_vector(35 downto 0);
-    signal lock             : std_logic;
+    signal tcxo_clk         : std_ulogic;
+    signal reset_n_inv      : std_ulogic;
+    signal from_pps_wr_en   : std_ulogic;
+    signal from_pps_rd_en   : std_ulogic := '0';
+    signal from_pps_empty   : std_ulogic;
+    signal from_pps_full    : std_ulogic;
+    signal to_pps_wr_en     : std_ulogic := '0';
+    signal to_pps_rd_en     : std_ulogic;
+    signal to_pps_empty     : std_ulogic;
+    signal to_pps_full      : std_ulogic;
+    signal data_from_pps    : std_ulogic_vector(31 downto 0);
+    signal data_to_pps      : std_ulogic_vector(35 downto 0);
+    signal lock             : std_ulogic;
+    signal pps_wr_data     : std_ulogic_vector(35 downto 0);
 
 begin
 
@@ -54,32 +56,46 @@ begin
     -- Assign outputs
     pps_pulse_out <= tcxo_in;
     pll_out <= tcxo_clk;
+    reset_n_inv <= not reset_n;
+    pps_wr_data <= (0 => is_write) & addr & data_i;
 
     -- FIFO to pass data from the upscaled TCXO clock into the system clock
     to_pps_fifo: entity work.fifo
+        generic map (
+            DATA_WIDTH => 36,  -- 1 bit for is_write, 3 bits for addr, 32 bits for data
+            ADDR_WIDTH      => 2   -- FIFO depth
+        )
         port map (
-            Data    => is_write & addr & data_i,
-            Reset   => not reset_n,
-            WrClk   => clk,
-            RdClk   => tcxo_clk,
-            WrEn    => to_pps_wr_en,
-            RdEn    => to_pps_rd_en,
-            Q       => data_to_pps,
-            Empty   => to_pps_empty,
-            Full    => to_pps_full
+            wr_clk  => clk,
+            wr_rst   => reset_n_inv,
+            wr_en    => to_pps_wr_en,
+            wr_data    => pps_wr_data,
+            wr_full    => to_pps_full,
+
+            rd_clk   => tcxo_clk,
+            rd_rst   => reset_n_inv,
+            rd_en    => to_pps_rd_en,
+            rd_data       => data_to_pps,
+            rd_empty   => to_pps_empty
         );
 
     from_pps_fifo: entity work.fifo
+        generic map (
+            DATA_WIDTH => 32,  -- 32 bits for data
+            ADDR_WIDTH      => 2   -- FIFO depth
+        )
         port map (
-            Data    => data_from_pps,
-            Reset   => not reset_n,
-            WrClk   => tcxo_clk,
-            RdClk   => clk,
-            WrEn    => from_pps_wr_en,
-            RdEn    => from_pps_rd_en,
-            Q       => data_o,
-            Empty   => from_pps_empty,
-            Full    => from_pps_full
+            wr_clk   => tcxo_clk,
+            wr_rst   => reset_n_inv,
+            wr_en    => from_pps_wr_en,
+            wr_data    => data_from_pps,
+            wr_full    => from_pps_full,
+
+            rd_clk   => clk,
+            rd_rst   => reset_n_inv,
+            rd_en    => from_pps_rd_en,
+            rd_data       => data_o,
+            rd_empty   => from_pps_empty
         );
 
     -- State machine for reads and writes from the RISC-V core
@@ -135,7 +151,7 @@ begin
     pps_timer0: entity work.pps_timer
         port map (
             tcxo_clk       => tcxo_clk,
-            reset_n        => reset_n and lock,
+            reset_n        => reset_n, -- reset_n and lock,
             pps_clk        => pps_in,
             data_to_pps    => data_to_pps,
             to_pps_rd_en   => to_pps_rd_en,

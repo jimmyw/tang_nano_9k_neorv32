@@ -6,38 +6,38 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity pps_timer is
     port (
-        tcxo_clk       : in  std_logic;               -- TXCO clock, upscaled by PLL (100 MHz)
-        reset_n        : in  std_logic;
-        pps_clk        : in  std_logic;               -- PPS input (1 Hz)
-        data_to_pps    : in  std_logic_vector(35 downto 0); -- is_write, addr, data in from FIFO
-        to_pps_rd_en   : out std_logic;
-        to_pps_empty   : in  std_logic;
-        data_from_pps  : out std_logic_vector(31 downto 0); -- result for reads from core
-        from_pps_wr_en : out std_logic;
-        from_pps_full  : in  std_logic
+        tcxo_clk       : in  std_ulogic;               -- TXCO clock, upscaled by PLL (100 MHz)
+        reset_n        : in  std_ulogic;
+        pps_clk        : in  std_ulogic;               -- PPS input (1 Hz)
+        data_to_pps    : in  std_ulogic_vector(35 downto 0); -- is_write, addr, data in from FIFO
+        to_pps_rd_en   : out std_ulogic;
+        to_pps_empty   : in  std_ulogic;
+        data_from_pps  : out std_ulogic_vector(31 downto 0); -- result for reads from core
+        from_pps_wr_en : out std_ulogic;
+        from_pps_full  : in  std_ulogic
     );
 end pps_timer;
 
 architecture Behavioral of pps_timer is
 
     -- Internal signals
-    signal reset_pps_n      : std_logic;
-    signal pps_clk_sync     : std_logic;
-    signal txco_ctr         : std_logic_vector(63 downto 0) := (others => '0');
-    signal pps_ctr          : std_logic_vector(32 downto 0) := (others => '0');
-    signal timestamp        : std_logic_vector(63 downto 0) := (others => '0');
-    signal is_write         : std_logic;
-    signal addr             : std_logic_vector(2 downto 0);
-    signal value_to_write   : std_logic_vector(31 downto 0);
-    signal state            : std_logic_vector(1 downto 0) := "00";
+    signal reset_pps_n      : std_ulogic;
+    signal pps_clk_sync     : std_ulogic;
+    signal txco_ctr         : std_ulogic_vector(63 downto 0) := (others => '0');
+    signal pps_ctr          : std_ulogic_vector(32 downto 0) := (others => '0');
+    signal timestamp        : std_ulogic_vector(63 downto 0) := (others => '0');
+    signal is_write         : std_ulogic;
+    signal addr             : std_ulogic_vector(2 downto 0);
+    signal value_to_write   : std_ulogic_vector(31 downto 0);
+    signal state            : std_ulogic_vector(1 downto 0) := "00";
 
     -- State machine states
-    constant AWAIT_NONEMPTY : std_logic_vector(1 downto 0) := "00";
-    constant FIFO_READ      : std_logic_vector(1 downto 0) := "01";
-    constant DO_OP          : std_logic_vector(1 downto 0) := "10";
+    constant AWAIT_NONEMPTY : std_ulogic_vector(1 downto 0) := "00";
+    constant FIFO_READ      : std_ulogic_vector(1 downto 0) := "01";
+    constant DO_OP          : std_ulogic_vector(1 downto 0) := "10";
 
     -- Synchronizer for reset_n
-    signal reset_sync       : std_logic_vector(2 downto 0) := (others => '0');
+    signal reset_sync       : std_ulogic_vector(2 downto 0) := (others => '0');
 
 begin
 
@@ -69,7 +69,7 @@ begin
         if reset_pps_n = '0' then
             txco_ctr <= (others => '0');
         elsif rising_edge(tcxo_clk) then
-            txco_ctr <= std_logic_vector(unsigned(txco_ctr) + 1);
+            txco_ctr <= std_ulogic_vector(unsigned(txco_ctr) + 1);
         end if;
     end process;
 
@@ -82,7 +82,7 @@ begin
         elsif rising_edge(tcxo_clk) then
             if pps_clk_sync = '1' then
                 timestamp <= txco_ctr;
-                pps_ctr <= std_logic_vector(unsigned(pps_ctr) + 1);
+                pps_ctr <= std_ulogic_vector(unsigned(pps_ctr) + 1);
             end if;
         end if;
     end process;

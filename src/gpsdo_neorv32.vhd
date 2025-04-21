@@ -26,7 +26,9 @@ entity gpsdo_neorv32 is
     MEM_INT_IMEM_SIZE : natural := 0;   -- size of processor-internal instruction memory in bytes
     MEM_INT_DMEM_SIZE : natural := 32*1024;     -- size of processor-internal data memory in bytes
     UFLASH_BASE : std_logic_vector(31 downto 0) := x"00000000";
-    UFLASH_END : std_logic_vector(31 downto 0) :=  x"00013000" -- 38 pages * 2048 bytes
+    UFLASH_END : std_logic_vector(31 downto 0) :=  x"00013000"; -- 38 pages * 2048 bytes
+    PPS_BASE : std_logic_vector(31 downto 0) := x"00013000";
+    PPS_END : std_logic_vector(31 downto 0) :=  x"00013100"
 
   );
   port (
@@ -43,7 +45,12 @@ entity gpsdo_neorv32 is
     jtag_tck_i     : in  std_ulogic;                                 -- serial clock
     jtag_tdi_i     : in  std_ulogic;                                 -- serial data input
     jtag_tdo_o     : out std_ulogic;                                 -- serial data output
-    jtag_tms_i     : in  std_ulogic                                 -- mode select
+    jtag_tms_i     : in  std_ulogic;                                 -- mode select
+
+    -- PPS --
+    tcxo_in : in std_ulogic;
+    pps_in : in std_ulogic
+
   );
 end entity;
 
@@ -66,12 +73,19 @@ architecture top_rtl of gpsdo_neorv32 is
 
   -- Xbus interconnect
   signal sel_uflash    : std_logic := '0';
+  signal sel_pps    : std_logic := '0';
 
 
   -- Slave A signals
   signal uflash_ack_i : std_ulogic;
   signal uflash_err_i : std_ulogic := '0';
   signal uflash_dat_i : std_ulogic_vector(31 downto 0);
+
+  -- Slave B signals
+  signal pps_ack_i : std_ulogic;
+  signal pps_err_i : std_ulogic := '0';
+  signal pps_dat_i : std_ulogic_vector(31 downto 0);
+
 
 begin
 
@@ -82,15 +96,7 @@ begin
       (unsigned(xbus_adr_o) < unsigned(UFLASH_END))
       ) else '0';
 
-  -- Connect the Xbus signals to the selected slave, or default to err if no slave is selected
-  xbus_ack_i <= uflash_ack_i when (sel_uflash = '1') else
-             '1';
 
-  xbus_err_i <= uflash_err_i when (sel_uflash = '1') else
-             '1'; -- default to err if no slave is selected
-
-  xbus_dat_i <= uflash_dat_i when (sel_uflash = '1') else
-             x"deadbeef"; -- default to 0 if no slave is selected
 
   uflash_inst: entity work.uflash
   generic map (
@@ -111,6 +117,41 @@ begin
   );
 
 
+  -- Check if address is in uflash range
+  sel_pps <= '1' when (
+      (unsigned(xbus_adr_o) >= unsigned(PPS_BASE)) and
+      (unsigned(xbus_adr_o) < unsigned(PPS_END))
+      ) else '0';
+
+  pps_wrapper_inst: entity work.pps_wrapper
+    port map(
+        clk_in => clk_i,
+        clk => clk_i,
+        reset_n => rstn_i,
+        sel => sel_pps,
+        addr => xbus_adr_o(4 downto 2),
+        is_write => xbus_we_o,
+        data_i => xbus_dat_o,
+        ready => pps_ack_i,
+        data_o => pps_dat_i,
+        tcxo_in => tcxo_in,
+        pps_in => pps_in,
+        pll_out => open,
+        pps_pulse_out => open
+    );
+
+  -- Connect the Xbus signals to the selected slave, or default to err if no slave is selected
+  xbus_ack_i <= uflash_ack_i when (sel_uflash = '1') else
+                pps_ack_i when (sel_pps = '1') else
+                '1';
+
+  xbus_err_i <= uflash_err_i when (sel_uflash = '1') else
+                pps_err_i when (sel_pps = '1') else
+                '1'; -- default to err if no slave is selected
+
+  xbus_dat_i <= uflash_dat_i when (sel_uflash = '1') else
+                pps_dat_i when (sel_pps = '1') else
+                x"deadbeef"; -- default to 0 if no slave is selected
 
 
   -- The Core Of The Problem ----------------------------------------------------------------
@@ -169,7 +210,6 @@ begin
     xbus_dat_i => xbus_dat_i,
     xbus_ack_i => xbus_ack_i,
     xbus_err_i => xbus_err_i
-
   );
 
   -- GPIO output --
