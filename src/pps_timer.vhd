@@ -7,7 +7,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity pps_timer is
     port (
         tcxo_clk       : in  std_ulogic;               -- TXCO clock, upscaled by PLL (100 MHz)
-        reset_n        : in  std_ulogic;
+        reset_n        : in  std_ulogic;               -- Active low reset, '1' if system is running
         pps_clk        : in  std_ulogic;               -- PPS input (1 Hz)
         data_to_pps    : in  std_ulogic_vector(35 downto 0); -- is_write, addr, data in from FIFO
         to_pps_rd_en   : out std_ulogic;
@@ -41,6 +41,7 @@ architecture Behavioral of pps_timer is
 
 begin
 
+
     -- Synchronize reset_n to the PPS clock domain
     process(tcxo_clk, reset_n)
     begin
@@ -54,14 +55,14 @@ begin
     end process;
 
     -- Rising edge finder for PPS clock
-    pps_clk_finder: process(tcxo_clk, reset_pps_n)
-    begin
-        if reset_pps_n = '0' then
-            pps_clk_sync <= '0';
-        elsif rising_edge(tcxo_clk) then
-            pps_clk_sync <= pps_clk and not pps_clk_sync;
-        end if;
-    end process;
+    rising_edge_finder: entity work.rising_edge_finder
+        port map (
+        clk    => tcxo_clk,
+        reset_n => reset_n,
+        sig_in => pps_clk,
+        pulse  => pps_clk_sync
+        );
+
 
     -- TXCO counter
     process(tcxo_clk, reset_pps_n)
@@ -95,8 +96,8 @@ begin
     -- Connect the right thing to the outgoing FIFO for reads
     data_from_pps <= timestamp(31 downto 0) when addr = "000" else
                      timestamp(63 downto 32) when addr = "001" else
-                     pps_ctr(31 downto 0) when addr = "101" else
-                     (others => '0');
+                     pps_ctr(31 downto 0) when addr = "011" else
+                     x"beeeeeef";
 
     -- State machine for handling reads and writes
     process(tcxo_clk, reset_pps_n)

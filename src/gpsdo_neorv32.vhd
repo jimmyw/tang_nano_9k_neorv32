@@ -20,6 +20,10 @@ entity gpsdo_neorv32 is
 -- Memory map:
 -- 0x00000000 - 0x00013000: 76kb uFlash (Gowin User Flash)
 -- 0x80000000 - 0x80008000: 32kb SRAM (Gowin User SRAM)
+-- 0x00013000 - 0x00013100: 256 bytes PPS (PPS Timer)
+--            | 0x13000 Low Word
+--            | 0x13004 High Word
+--            | 0x13008 PPS Counter
   generic (
     -- adapt these for your setup --
     CLOCK_FREQUENCY   : natural := 27000000;  -- clock frequency of clk_i in Hz
@@ -49,8 +53,9 @@ entity gpsdo_neorv32 is
 
     -- PPS --
     tcxo_in : in std_ulogic;
-    pps_in : in std_ulogic
-
+    pps_in : in std_ulogic;
+    pll_out : out std_ulogic;
+    pps_pulse_out : out std_ulogic
   );
 end entity;
 
@@ -86,16 +91,13 @@ architecture top_rtl of gpsdo_neorv32 is
   signal pps_err_i : std_ulogic := '0';
   signal pps_dat_i : std_ulogic_vector(31 downto 0);
 
-
 begin
-
 
   -- Check if address is in uflash range
   sel_uflash <= '1' when (
       (unsigned(xbus_adr_o) >= unsigned(UFLASH_BASE)) and
       (unsigned(xbus_adr_o) < unsigned(UFLASH_END))
       ) else '0';
-
 
 
   uflash_inst: entity work.uflash
@@ -136,8 +138,8 @@ begin
         data_o => pps_dat_i,
         tcxo_in => tcxo_in,
         pps_in => pps_in,
-        pll_out => open,
-        pps_pulse_out => open
+        pll_out => pll_out,
+        pps_pulse_out => pps_pulse_out
     );
 
   -- Connect the Xbus signals to the selected slave, or default to err if no slave is selected
@@ -147,11 +149,11 @@ begin
 
   xbus_err_i <= uflash_err_i when (sel_uflash = '1') else
                 pps_err_i when (sel_pps = '1') else
-                '1'; -- default to err if no slave is selected
+                '0'; -- default to err if no slave is selected
 
   xbus_dat_i <= uflash_dat_i when (sel_uflash = '1') else
                 pps_dat_i when (sel_pps = '1') else
-                x"deadbeef"; -- default to 0 if no slave is selected
+                x"deadbeef"; -- default to 0 if ndeo slave is selected
 
 
   -- The Core Of The Problem ----------------------------------------------------------------

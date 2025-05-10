@@ -58,8 +58,8 @@ IO_PORT "pps_in" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
 IO_LOC  "tcxo_in" 51;
 IO_PORT "tcxo_in" IO_TYPE=LVCMOS33;
 
-//IO_LOC  "pll_out" 42;
-//IO_PORT "pll_out" IO_TYPE=LVCMOS33;
+IO_LOC  "pll_out" 42;
+IO_PORT "pll_out" IO_TYPE=LVCMOS33;
 
-//IO_LOC  "pps_pulse_out" 63;
-//IO_PORT "pps_pulse_out" DRIVE=8 IO_TYPE=LVCMOS33;
+IO_LOC  "pps_pulse_out" 63;
+IO_PORT "pps_pulse_out" DRIVE=8 IO_TYPE=LVCMOS33;

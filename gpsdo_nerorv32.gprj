@@ -59,6 +59,7 @@
         <File path="src/neorv32_xbus.vhd" type="file.vhdl" enable="1" library="neorv32"/>
         <File path="src/pps_timer.vhd" type="file.vhdl" enable="1"/>
         <File path="src/pps_wrapper.vhd" type="file.vhdl" enable="1"/>
+        <File path="src/rising_edge_finder.vhd" type="file.vhdl" enable="1"/>
         <File path="src/tcxo_doubler.vhd" type="file.vhdl" enable="1"/>
         <File path="src/uflash.vhd" type="file.vhdl" enable="1"/>
         <File path="src/gpsdo_neorv32.cst" type="file.cst" enable="1"/>

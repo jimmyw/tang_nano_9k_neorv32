@@ -7,7 +7,7 @@ entity pps_wrapper is
     port (
         clk_in         : in  std_ulogic;  -- The 9MHz clock
         clk            : in  std_ulogic;  -- The system clock
-        reset_n        : in  std_ulogic;
+        reset_n        : in  std_ulogic;  -- Active low reset, '1' if system is running
         sel            : in  std_ulogic;
         addr           : in  std_ulogic_vector(2 downto 0);  -- Word address
         is_write       : in  std_ulogic;
@@ -42,22 +42,26 @@ architecture Behavioral of pps_wrapper is
     signal data_to_pps      : std_ulogic_vector(35 downto 0);
     signal lock             : std_ulogic;
     signal pps_wr_data     : std_ulogic_vector(35 downto 0);
+    signal rst_and_lock : std_ulogic;
 
 begin
 
     -- PLL instantiation
-    rpll_pps: entity work.tcxo_doubler
-        port map (
-            clkout => tcxo_clk,  -- PLL 100 MHz
-            clkin  => tcxo_in,   -- TCXO 10 MHz
-            lock   => lock
-        );
+    --rpll_pps: entity work.tcxo_doubler
+    --    port map (
+    --        clkout => tcxo_clk,  -- PLL 100 MHz
+    --        clkin  => tcxo_in,   -- TCXO 10 MHz
+    --        lock   => lock
+    --    );
+    tcxo_clk <= tcxo_in; -- For simulation purposes, use the TCXO clock directly
+
 
     -- Assign outputs
     pps_pulse_out <= tcxo_in;
     pll_out <= tcxo_clk;
     reset_n_inv <= not reset_n;
     pps_wr_data <= (0 => is_write) & addr & data_i;
+    rst_and_lock <= reset_n; -- and lock; -- Reset the FIFO if the PLL is not locked
 
     -- FIFO to pass data from the upscaled TCXO clock into the system clock
     to_pps_fifo: entity work.fifo
@@ -151,7 +155,7 @@ begin
     pps_timer0: entity work.pps_timer
         port map (
             tcxo_clk       => tcxo_clk,
-            reset_n        => reset_n, -- reset_n and lock,
+            reset_n        => rst_and_lock,
             pps_clk        => pps_in,
             data_to_pps    => data_to_pps,
             to_pps_rd_en   => to_pps_rd_en,
