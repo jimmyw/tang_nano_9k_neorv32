@@ -61,7 +61,7 @@ begin
     pll_out <= tcxo_clk;
     reset_n_inv <= not reset_n;
     pps_wr_data <= (0 => is_write) & addr & data_i;
-    rst_and_lock <= reset_n; -- and lock; -- Reset the FIFO if the PLL is not locked
+    rst_and_lock <= reset_n and lock; -- Reset the FIFO if the PLL is not locked
 
     -- FIFO to pass data from the upscaled TCXO clock into the system clock
     to_pps_fifo: entity work.fifo
