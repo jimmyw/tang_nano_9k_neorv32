@@ -47,13 +47,13 @@ architecture Behavioral of pps_wrapper is
 begin
 
     -- PLL instantiation
-    --rpll_pps: entity work.tcxo_doubler
-    --    port map (
-    --        clkout => tcxo_clk,  -- PLL 100 MHz
-    --        clkin  => tcxo_in,   -- TCXO 10 MHz
-    --        lock   => lock
-    --    );
-    tcxo_clk <= tcxo_in; -- For simulation purposes, use the TCXO clock directly
+    rpll_pps: entity work.tcxo_doubler
+        port map (
+            clkout => tcxo_clk,  -- PLL 100 MHz
+            clkin  => tcxo_in,   -- TCXO 10 MHz
+            lock   => lock
+        );
+    --tcxo_clk <= tcxo_in; -- For simulation purposes, use the TCXO clock directly
 
 
     -- Assign outputs
