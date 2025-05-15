@@ -16,10 +16,10 @@ IO_PORT "gpio_o[4]" IO_TYPE=LVCMOS18 DRIVE=8;
 IO_LOC "gpio_o[5]" 16;
 IO_PORT "gpio_o[5]" IO_TYPE=LVCMOS18 DRIVE=8;
 
-IO_LOC "uart0_rxd_i" 31;
-IO_PORT "uart0_rxd_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
-IO_LOC "uart0_txd_o" 32;
+IO_LOC "uart0_txd_o" 31;
 IO_PORT "uart0_txd_o" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;
+IO_LOC "uart0_rxd_i" 32;
+IO_PORT "uart0_rxd_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 
 IO_LOC "rstn_i" 3;
 IO_PORT "rstn_i" IO_TYPE=LVCMOS33 PULL_MODE=UP;
@@ -55,11 +55,12 @@ IO_PORT "jtag_tms_i" IO_TYPE=LVCMOS33 PULL_MODE=UP
 IO_LOC  "pps_in" 53;
 IO_PORT "pps_in" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
 
-IO_LOC  "tcxo_in" 51;
+// PIN 63 is a PLL input pin a and is perfect to use for TCXO.
+IO_LOC  "tcxo_in" 63;
 IO_PORT "tcxo_in" IO_TYPE=LVCMOS33;
 
-IO_LOC  "pll_out" 42;
+IO_LOC  "pll_out" 35;
 IO_PORT "pll_out" IO_TYPE=LVCMOS33;
 
-IO_LOC  "pps_pulse_out" 63;
+IO_LOC  "pps_pulse_out" 51;
 IO_PORT "pps_pulse_out" DRIVE=8 IO_TYPE=LVCMOS33;
