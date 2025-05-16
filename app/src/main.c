@@ -9,7 +9,7 @@
 #include <zephyr/kernel.h>
 
 /* 1000 msec = 1 sec */
-#define SLEEP_TIME_MS 1000
+#define SLEEP_TIME_MS 10
 
 /* The devicetree node identifier for the "led0" alias. */
 #define LED0_NODE DT_ALIAS(led0)
@@ -22,6 +22,7 @@ static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 #define PPS_TIMESTAMP_LO ((volatile uint32_t *)0x13000)
 #define PPS_TIMESTAMP_HI ((volatile uint32_t *)0x13004)
+#define PPS_FLAGS ((volatile uint32_t *)0x13008)
 #define PPS_PPS_COUNT ((volatile uint32_t *)0x1300c)
 #define PPS_TARGET_HZ 10000000LL // 10 MHz
 #define PPS_TARGET_MAX_DELTA_HZ 1000LL
@@ -48,12 +49,16 @@ static uint64_t pps_get64(volatile uint32_t *addr) {
 
 uint64_t pps_get_tcxo_timestamp(void) { return pps_get64(PPS_TIMESTAMP_LO); }
 
+uint32_t pps_get_pps_flags(void) { return *PPS_FLAGS; }
 uint32_t pps_get_pps_timestamp(void) { return *PPS_PPS_COUNT; }
+
+#define PPS_FLAG_TIMSTAMP_VALID 0x1
 
 void process_pps() {
   // Read conunters from fpga
-  uint64_t tcxo_timestamp = pps_get_tcxo_timestamp();
   uint64_t pps_timestamp = pps_get_pps_timestamp();
+  uint32_t pps_flags = pps_get_pps_flags();
+  uint64_t tcxo_timestamp = pps_get_tcxo_timestamp();
 
   // These are the counts from the last ppm pulse
   static uint64_t last_tcxo_timestamp = 0;
@@ -62,6 +67,8 @@ void process_pps() {
   if (last_ppm_timestamp == pps_timestamp) {
     return;
   }
+  printf("PPS timestamp: %llu flags: %" PRIu32 " tcxp: %" PRIu64 "\n",
+         pps_timestamp, pps_flags, tcxo_timestamp);
 
   // These are the counts from where we started to meassure
   static uint64_t last_tcxo_reset_timestamp = 0;
