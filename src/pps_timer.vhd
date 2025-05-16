@@ -40,6 +40,7 @@ architecture Behavioral of pps_timer is
 
     -- Synchronizer for reset_n
     signal reset_sync       : std_ulogic_vector(2 downto 0) := (others => '0');
+    signal pps_clk_sync_prev : std_ulogic := '0';
 begin
 
 
@@ -77,16 +78,20 @@ begin
     end process;
 
     -- TXCO PPS counter
-    process(pps_clk_sync, reset_pps_n)
+    process(tcxo_clk, reset_pps_n)
     begin
         if reset_pps_n = '0' then
             pps_ctr <= (others => '0');
             timestamp <= (others => '0');
             timstamp_valid <= '0';
-        elsif rising_edge(pps_clk_sync) then
-            timestamp <= txco_ctr;
-            pps_ctr <= std_ulogic_vector(unsigned(pps_ctr) + 1);
-            timstamp_valid <= pps_valid;
+            pps_clk_sync_prev <= '0';
+        elsif rising_edge(tcxo_clk) then
+            pps_clk_sync_prev <= pps_clk_sync;
+            if (pps_clk_sync_prev = '0') and (pps_clk_sync = '1') then
+                timestamp <= txco_ctr;
+                pps_ctr <= std_ulogic_vector(unsigned(pps_ctr) + 1);
+                timstamp_valid <= pps_valid;
+            end if;
         end if;
     end process;
 
