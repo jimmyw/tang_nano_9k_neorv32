@@ -90,12 +90,12 @@ BEGIN
         IDIV_SEL => 0,
         DYN_FBDIV_SEL => "false",
         -- 80Mhz
-        -- FBDIV_SEL => 7,
+        --FBDIV_SEL => 7,
         -- 100Mhz
         FBDIV_SEL => 9,
         DYN_ODIV_SEL => "false",
         -- 80Mhz
-        -- ODIV_SEL => 8,
+        --ODIV_SEL => 8,
         -- 100Mhz
         ODIV_SEL => 4,
         PSDA_SEL => "0000",
