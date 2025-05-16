@@ -23,9 +23,11 @@ architecture Behavioral of pps_timer is
     -- Internal signals
     signal reset_pps_n      : std_ulogic;
     signal pps_clk_sync     : std_ulogic;
+    signal pps_valid        : std_ulogic;
     signal txco_ctr         : std_ulogic_vector(63 downto 0) := (others => '0');
     signal pps_ctr          : std_ulogic_vector(32 downto 0) := (others => '0');
     signal timestamp        : std_ulogic_vector(63 downto 0) := (others => '0');
+    signal timstamp_valid   : std_ulogic;
     signal is_write         : std_ulogic;
     signal addr             : std_ulogic_vector(2 downto 0);
     signal value_to_write   : std_ulogic_vector(31 downto 0);
@@ -38,7 +40,6 @@ architecture Behavioral of pps_timer is
 
     -- Synchronizer for reset_n
     signal reset_sync       : std_ulogic_vector(2 downto 0) := (others => '0');
-
 begin
 
 
@@ -60,7 +61,8 @@ begin
         clk    => tcxo_clk,
         reset_n => reset_n,
         sig_in => pps_clk,
-        pulse  => pps_clk_sync
+        pulse  => pps_clk_sync,
+        valid_pulse => pps_valid
         );
 
 
@@ -80,9 +82,11 @@ begin
         if reset_pps_n = '0' then
             pps_ctr <= (others => '0');
             timestamp <= (others => '0');
+            timstamp_valid <= '0';
         elsif rising_edge(pps_clk_sync) then
             timestamp <= txco_ctr;
             pps_ctr <= std_ulogic_vector(unsigned(pps_ctr) + 1);
+            timstamp_valid <= pps_valid;
         end if;
     end process;
 
@@ -94,6 +98,7 @@ begin
     -- Connect the right thing to the outgoing FIFO for reads
     data_from_pps <= timestamp(31 downto 0) when addr = "000" else
                      timestamp(63 downto 32) when addr = "001" else
+                     (31 downto 1 => '0') & timstamp_valid  when addr = "010" else
                      pps_ctr(31 downto 0) when addr = "011" else
                      x"beeeeeef";
 
