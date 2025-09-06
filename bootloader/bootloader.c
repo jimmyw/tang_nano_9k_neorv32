@@ -62,7 +62,7 @@
 
 /** Time until the auto-boot sequence starts (in seconds); 0 = disabled */
 #ifndef AUTO_BOOT_TIMEOUT
-  #define AUTO_BOOT_TIMEOUT 10
+  #define AUTO_BOOT_TIMEOUT 5
 #endif
 
 /* -------- SPI configuration -------- */
