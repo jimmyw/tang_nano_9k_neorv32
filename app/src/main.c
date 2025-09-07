@@ -57,7 +57,7 @@ uint32_t pps_get_pps_timestamp(void) { return *PPS_PPS_COUNT; }
 #define PPS_FLAG_TIMSTAMP_VALID 0x1
 
 void test_mcp4725_dac(void) {
-  // Try DAC driver first
+  // Try DAC driver first (now that I2C is properly configured)
   const struct device *dac_dev = DEVICE_DT_GET(DT_NODELABEL(mcp4725_dac));
 
   // Generate a stepping DAC output pattern
@@ -97,7 +97,7 @@ void test_mcp4725_dac(void) {
     ret = dac_write_value(dac_dev, 0, dac_value);
     if (ret == 0) {
       uint32_t voltage_mv = (dac_value * 3300) / 4095;
-      printf("DAC (Zephyr driver): value=%d, voltage=%d.%03dV\n",
+      printf("DAC: value=%d, voltage=%d.%03dV\n",
              dac_value, voltage_mv / 1000, voltage_mv % 1000);
     } else {
       printf("DAC write failed: %d (value=%d)\n", ret, dac_value);
@@ -218,31 +218,13 @@ int main(void) {
     return 0;
   }
 
-  // Check I2C bus first
+  // Check device initialization status
   const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
-  if (!device_is_ready(i2c_dev)) {
-    printf("I2C device not ready\n");
-  } else {
-    printf("I2C device ready\n");
-    // Configure I2C
-    int i2c_ret = i2c_configure(i2c_dev, I2C_SPEED_SET(I2C_SPEED_STANDARD) | I2C_MODE_CONTROLLER);
-    if (i2c_ret < 0) {
-      printf("I2C configuration failed: %d\n", i2c_ret);
-    } else {
-      printf("I2C configured successfully\n");
-    }
-  }
-
-  // Give some time for I2C to settle
-  k_msleep(100);
-
-  // Check if DAC device is ready after I2C is configured
   const struct device *dac_dev = DEVICE_DT_GET(DT_NODELABEL(mcp4725_dac));
-  if (!device_is_ready(dac_dev)) {
-    printf("MCP4725 DAC device not ready - will use direct I2C\n");
-  } else {
-    printf("MCP4725 DAC device ready\n");
-  }
+
+  printf("I2C ready: %s, DAC ready: %s\n",
+         device_is_ready(i2c_dev) ? "yes" : "no",
+         device_is_ready(dac_dev) ? "yes" : "no");
 
   static int cycle_count = 0;
 
@@ -256,10 +238,11 @@ int main(void) {
 
     // Update DAC output every cycle
     cycle_count++;
-    printf("\n=== DAC Update Cycle %d ===\n", cycle_count);
+    printf("\n=== Cycle %d ===\n", cycle_count);
     test_mcp4725_dac();
 
-    //process_pps();
+    // Uncomment to enable PPS processing
+    // process_pps();
 
     // Sleep for 2 seconds to see changes clearly
     k_msleep(2000);
