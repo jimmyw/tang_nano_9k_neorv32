@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "/home/jimmy/zephyrproject"
+    }
+  ],
+  "settings": {
+    "workbench.colorCustomizations": {
+      "activityBar.background": "#531147",
+      "titleBar.activeBackground": "#741863",
+      "titleBar.activeForeground": "#FEF8FC"
+    },
+    "files.associations": {
+      "ranges": "c",
+      "adi_max32_clock_control.h": "c"
+    }
+  }
+}

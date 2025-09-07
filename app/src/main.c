@@ -59,35 +59,60 @@ uint32_t pps_get_pps_timestamp(void) { return *PPS_PPS_COUNT; }
 void test_mcp4725_dac(void) {
   const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
 
-  printf("DEBUG: I2C device name: %s\n", i2c_dev->name);
-  printf("DEBUG: I2C device API: %p\n", i2c_dev->api);
-
   if (!device_is_ready(i2c_dev)) {
     printf("I2C device not ready\n");
     return;
   }
 
-  // Simple I2C write - send a byte to MCP4725 address (0x60)
-  static uint8_t test_byte = 0x00;
-  uint8_t tx_data[] = {test_byte, 0x00}; // Simple 2-byte write
+  // Generate a stepping DAC output pattern
+  static uint16_t dac_value = 0;
+  static uint8_t step_count = 0;
+
+  // Create different voltage levels for easy scope observation
+  // 0V, 0.825V, 1.65V, 2.475V, 3.3V (assuming 3.3V Vdd)
+  uint16_t voltage_steps[] = {0, 1024, 2048, 3072, 4095}; // 12-bit values
+
+  // Use predefined steps for first 5 cycles, then ramp
+  if (step_count < 5) {
+    dac_value = voltage_steps[step_count];
+    step_count++;
+  } else {
+    // Continuous ramp from 0 to 4095
+    dac_value += 256;  // Increment by 256 for visible steps
+    if (dac_value > 4095) {
+      dac_value = 0;
+      step_count = 0;  // Reset to step pattern
+    }
+  }
+
+  // MCP4725 Fast Mode command format:
+  // Byte 0: C2 C1 C0 x PD1 PD0 D11 D10
+  // Byte 1: D9 D8 D7 D6 D5 D4 D3 D2
+  // Byte 2: D1 D0 x x x x x x
+  // For fast mode: C2=0, C1=0, C0=0, PD1=PD0=0 (normal operation)
+
+  uint8_t tx_data[3];
+  tx_data[0] = (dac_value >> 8) & 0x0F;           // Upper 4 bits of 12-bit value
+  tx_data[1] = dac_value & 0xFF;                  // Lower 8 bits of 12-bit value
+  tx_data[2] = 0x00;                             // Not used in fast mode but some variants expect it
 
   struct i2c_msg msgs[] = {
     {
       .buf = tx_data,
-      .len = sizeof(tx_data),
+      .len = 2,  // MCP4725 fast mode uses 2 bytes
       .flags = I2C_MSG_WRITE | I2C_MSG_STOP,
     }
   };
 
   int ret = i2c_transfer(i2c_dev, msgs, 1, 0x60);
   if (ret == 0) {
-    printf("I2C write successful - sent byte 0x%02x to address 0x60\n", test_byte);
+    // Calculate expected voltage (assuming 3.3V reference)
+    uint32_t voltage_mv = (dac_value * 3300) / 4095;
+    printf("DAC updated: value=%d, voltage=%d.%03dV\n",
+           dac_value, voltage_mv / 1000, voltage_mv % 1000);
   } else {
-    printf("I2C write failed: %d - sent byte 0x%02x to address 0x60\n", ret, test_byte);
+    printf("DAC write failed: %d (value=%d)\n", ret, dac_value);
   }
-
-  // Increment test byte for next cycle (0x00 to 0xFF then wrap)
-  test_byte++;
 }
 
 void process_pps() {
@@ -164,7 +189,6 @@ int main(void) {
   // Test I2C driver initialization
   const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
 
-
   int ret;
   bool led_state = true;
 
@@ -177,6 +201,21 @@ int main(void) {
     return 0;
   }
 
+  // Configure I2C once at startup
+  if (!device_is_ready(i2c_dev)) {
+    printf("I2C device not ready for configuration\n");
+  } else {
+    printf("I2C device is ready - configuring...\n");
+    int i2c_ret = i2c_configure(i2c_dev, I2C_SPEED_SET(I2C_SPEED_STANDARD) | I2C_MODE_CONTROLLER);
+    if (i2c_ret < 0) {
+      printf("I2C configuration failed: %d\n", i2c_ret);
+    } else {
+      printf("I2C configured successfully\n");
+    }
+  }
+
+  static int cycle_count = 0;
+
   while (1) {
     ret = gpio_pin_toggle_dt(&led);
     if (ret < 0) {
@@ -184,33 +223,16 @@ int main(void) {
     }
 
     led_state = !led_state;
-    // printf("LED state: %s\n", led_state ? "ON" : "OFF");
-    // printf("PPS timestamp: %llu ", pps_get_tcxo_timestamp());
-    // printf("PPS count: %u\n", pps_get_pps());
 
-        // This should trigger the configure function in your driver
-    if (!device_is_ready(i2c_dev)) {
-      printf("I2C device not ready for configuration\n");
-    } else {
-      printf("I2C device is ready - attempting configuration\n");
-      int i2c_ret = i2c_configure(i2c_dev, I2C_SPEED_SET(I2C_SPEED_STANDARD) | I2C_MODE_CONTROLLER);
-      if (i2c_ret < 0) {
-        printf("I2C configuration failed: %d\n", i2c_ret);
-      } else {
-        printf("I2C configured successfully\n");
-      }
-    }
-
-    k_msleep(1000);
-
-    // Test I2C/MCP4725 every second for scope verification
-    static int cycle_count = 0;
+    // Update DAC output every cycle
     cycle_count++;
-    printf("\n=== I2C Test Cycle %d ===\n", cycle_count);
+    printf("\n=== DAC Update Cycle %d ===\n", cycle_count);
     test_mcp4725_dac();
 
     //process_pps();
-    k_msleep(SLEEP_TIME_MS);
+
+    // Sleep for 2 seconds to see changes clearly
+    k_msleep(2000);
   }
   return 0;
 }
