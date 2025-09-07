@@ -21,6 +21,7 @@
 
 &i2c0 {
     status = "okay";
+    clock-frequency = <100000>; /* 100 kHz - Standard I2C speed */
 
     mcp4725_dac: mcp4725@60 {
         compatible = "microchip,mcp4725";
