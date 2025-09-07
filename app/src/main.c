@@ -6,10 +6,12 @@
 
 #include <stdio.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/dac.h>
 #include <zephyr/kernel.h>
 
+#define SLEEP_TIME_MS 10000
 /* 1000 msec = 1 sec */
-#define SLEEP_TIME_MS 10
 
 /* The devicetree node identifier for the "led0" alias. */
 #define LED0_NODE DT_ALIAS(led0)
@@ -53,6 +55,40 @@ uint32_t pps_get_pps_flags(void) { return *PPS_FLAGS; }
 uint32_t pps_get_pps_timestamp(void) { return *PPS_PPS_COUNT; }
 
 #define PPS_FLAG_TIMSTAMP_VALID 0x1
+
+void test_mcp4725_dac(void) {
+  const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
+
+  printf("DEBUG: I2C device name: %s\n", i2c_dev->name);
+  printf("DEBUG: I2C device API: %p\n", i2c_dev->api);
+
+  if (!device_is_ready(i2c_dev)) {
+    printf("I2C device not ready\n");
+    return;
+  }
+
+  // Simple I2C write - send a byte to MCP4725 address (0x60)
+  static uint8_t test_byte = 0x00;
+  uint8_t tx_data[] = {test_byte, 0x00}; // Simple 2-byte write
+
+  struct i2c_msg msgs[] = {
+    {
+      .buf = tx_data,
+      .len = sizeof(tx_data),
+      .flags = I2C_MSG_WRITE | I2C_MSG_STOP,
+    }
+  };
+
+  int ret = i2c_transfer(i2c_dev, msgs, 1, 0x60);
+  if (ret == 0) {
+    printf("I2C write successful - sent byte 0x%02x to address 0x60\n", test_byte);
+  } else {
+    printf("I2C write failed: %d - sent byte 0x%02x to address 0x60\n", ret, test_byte);
+  }
+
+  // Increment test byte for next cycle (0x00 to 0xFF then wrap)
+  test_byte++;
+}
 
 void process_pps() {
   // Read conunters from fpga
@@ -125,6 +161,10 @@ void process_pps() {
 int main(void) {
   printf("Hello World! %s\n", CONFIG_BOARD);
 
+  // Test I2C driver initialization
+  const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
+
+
   int ret;
   bool led_state = true;
 
@@ -147,7 +187,29 @@ int main(void) {
     // printf("LED state: %s\n", led_state ? "ON" : "OFF");
     // printf("PPS timestamp: %llu ", pps_get_tcxo_timestamp());
     // printf("PPS count: %u\n", pps_get_pps());
-    process_pps();
+
+        // This should trigger the configure function in your driver
+    if (!device_is_ready(i2c_dev)) {
+      printf("I2C device not ready for configuration\n");
+    } else {
+      printf("I2C device is ready - attempting configuration\n");
+      int i2c_ret = i2c_configure(i2c_dev, I2C_SPEED_SET(I2C_SPEED_STANDARD) | I2C_MODE_CONTROLLER);
+      if (i2c_ret < 0) {
+        printf("I2C configuration failed: %d\n", i2c_ret);
+      } else {
+        printf("I2C configured successfully\n");
+      }
+    }
+
+    k_msleep(1000);
+
+    // Test I2C/MCP4725 every second for scope verification
+    static int cycle_count = 0;
+    cycle_count++;
+    printf("\n=== I2C Test Cycle %d ===\n", cycle_count);
+    test_mcp4725_dac();
+
+    //process_pps();
     k_msleep(SLEEP_TIME_MS);
   }
   return 0;

@@ -55,7 +55,11 @@ entity gpsdo_neorv32 is
     tcxo_in : in std_ulogic;
     pps_in : in std_ulogic;
     pll_out : out std_ulogic;
-    pps_pulse_out : out std_ulogic
+    pps_pulse_out : out std_ulogic;
+
+    -- twi --
+    twi_sda      : inout  std_ulogic;                                 -- serial data
+    twi_scl      : inout  std_ulogic                                 -- serial clock
   );
 end entity;
 
@@ -90,6 +94,12 @@ architecture top_rtl of gpsdo_neorv32 is
   signal pps_ack_i : std_ulogic;
   signal pps_err_i : std_ulogic := '0';
   signal pps_dat_i : std_ulogic_vector(31 downto 0);
+
+  -- twi signals
+  signal  twi_sda_i      : std_ulogic;                                 -- serial data line sense input
+  signal  twi_sda_o      : std_ulogic;                                        -- serial data line output (pull low only)
+  signal  twi_scl_i      : std_ulogic;                                 -- serial clock line sense input
+  signal  twi_scl_o      : std_ulogic;                                        -- serial clock line output (pull low only)
 
 begin
 
@@ -169,7 +179,7 @@ begin
     RISCV_ISA_M       => true,              -- implement mul/div extension?
     RISCV_ISA_Zicntr  => true,              -- implement base counters?
     -- Internal Instruction memory --
-    MEM_INT_IMEM_EN   => false,              -- implement processor-internal instruction memory
+    MEM_INT_IMEM_EN   => false,             -- implement processor-internal instruction memory
     MEM_INT_IMEM_SIZE => MEM_INT_IMEM_SIZE, -- size of processor-internal instruction memory in bytes
     -- Internal Data memory --
     MEM_INT_DMEM_EN   => true,              -- implement processor-internal data memory
@@ -178,10 +188,14 @@ begin
     IO_GPIO_NUM       => 6,                 -- number of GPIO input/output pairs (0..32)
     IO_CLINT_EN       => true,              -- implement core local interruptor (CLINT)?
     IO_UART0_EN       => true,              -- implement primary universal asynchronous receiver/transmitter (UART0)?
-    OCD_EN            => true,               -- implement JTAG interface
+    OCD_EN            => true,              -- implement JTAG interface
 
+    -- XBUS used by ppm and uflash
     XBUS_EN           => true,              -- implement X-Bus interface
-    XBUS_TIMEOUT      => 0                  -- Disable timeout, flash erase can take a long time
+    XBUS_TIMEOUT      => 0,                 -- Disable timeout, flash erase can take a long time
+
+    -- I2C
+    IO_TWI_EN         => true
   )
   port map (
     -- Global control --
@@ -211,11 +225,23 @@ begin
     xbus_cyc_o => xbus_cyc_o,
     xbus_dat_i => xbus_dat_i,
     xbus_ack_i => xbus_ack_i,
-    xbus_err_i => xbus_err_i
+    xbus_err_i => xbus_err_i,
+
+    -- twi
+    twi_sda_i => twi_sda_i,      -- serial data line sense input
+    twi_sda_o => twi_sda_o,      -- serial data line output (pull low only)
+    twi_scl_i => twi_scl_i,      -- serial clock line sense input
+    twi_scl_o => twi_scl_o       -- serial clock line output (pull low only)
   );
 
   -- GPIO output --
   gpio_o <= con_gpio_out(5 downto 0);
+
+  -- twi mapping
+  twi_sda    <= '0' when (twi_sda_o = '0') else 'Z'; -- drive
+  twi_scl    <= '0' when (twi_scl_o = '0') else 'Z'; -- drive
+  twi_sda_i <= std_ulogic(twi_sda); -- sense
+  twi_scl_i <= std_ulogic(twi_scl); -- sense
 
 
 end architecture;

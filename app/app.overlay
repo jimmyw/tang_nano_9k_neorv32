@@ -19,3 +19,23 @@
     reg = <0x80000000 DT_SIZE_K(32)>;
 };
 
+&i2c0 {
+    status = "okay";
+
+    mcp4725_dac: mcp4725@60 {
+        compatible = "microchip,mcp4725";
+        reg = <0x60>;
+        #io-channel-cells = <1>;
+        status = "okay";
+    };
+
+    /* Alternative address if A0 is connected to VCC instead of GND
+    mcp4725_dac_alt: mcp4725@61 {
+        compatible = "microchip,mcp4725";
+        reg = <0x61>;
+        #io-channel-cells = <1>;
+        status = "disabled";
+    };
+    */
+};
+
