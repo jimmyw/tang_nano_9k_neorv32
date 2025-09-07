@@ -9,6 +9,7 @@
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/drivers/dac.h>
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 
 #define SLEEP_TIME_MS 10000
 /* 1000 msec = 1 sec */
@@ -205,6 +206,7 @@ void process_pps() {
 
 int main(void) {
   printf("Hello World! %s\n", CONFIG_BOARD);
+  //LOG_LEVEL_SET(LOG_LEVEL_DBG);
 
   int ret;
   bool led_state = true;
