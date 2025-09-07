@@ -57,12 +57,8 @@ uint32_t pps_get_pps_timestamp(void) { return *PPS_PPS_COUNT; }
 #define PPS_FLAG_TIMSTAMP_VALID 0x1
 
 void test_mcp4725_dac(void) {
-  const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
-
-  if (!device_is_ready(i2c_dev)) {
-    printf("I2C device not ready\n");
-    return;
-  }
+  // Try DAC driver first
+  const struct device *dac_dev = DEVICE_DT_GET(DT_NODELABEL(mcp4725_dac));
 
   // Generate a stepping DAC output pattern
   static uint16_t dac_value = 0;
@@ -85,33 +81,57 @@ void test_mcp4725_dac(void) {
     }
   }
 
-  // MCP4725 Fast Mode command format:
-  // Byte 0: C2 C1 C0 x PD1 PD0 D11 D10
-  // Byte 1: D9 D8 D7 D6 D5 D4 D3 D2
-  // Byte 2: D1 D0 x x x x x x
-  // For fast mode: C2=0, C1=0, C0=0, PD1=PD0=0 (normal operation)
+  if (device_is_ready(dac_dev)) {
+    // Use Zephyr DAC API
+    struct dac_channel_cfg dac_cfg = {
+      .channel_id = 0,
+      .resolution = 12,
+    };
 
-  uint8_t tx_data[3];
-  tx_data[0] = (dac_value >> 8) & 0x0F;           // Upper 4 bits of 12-bit value
-  tx_data[1] = dac_value & 0xFF;                  // Lower 8 bits of 12-bit value
-  tx_data[2] = 0x00;                             // Not used in fast mode but some variants expect it
-
-  struct i2c_msg msgs[] = {
-    {
-      .buf = tx_data,
-      .len = 2,  // MCP4725 fast mode uses 2 bytes
-      .flags = I2C_MSG_WRITE | I2C_MSG_STOP,
+    int ret = dac_channel_setup(dac_dev, &dac_cfg);
+    if (ret < 0) {
+      printf("DAC channel setup failed: %d\n", ret);
+      return;
     }
-  };
 
-  int ret = i2c_transfer(i2c_dev, msgs, 1, 0x60);
-  if (ret == 0) {
-    // Calculate expected voltage (assuming 3.3V reference)
-    uint32_t voltage_mv = (dac_value * 3300) / 4095;
-    printf("DAC updated: value=%d, voltage=%d.%03dV\n",
-           dac_value, voltage_mv / 1000, voltage_mv % 1000);
+    ret = dac_write_value(dac_dev, 0, dac_value);
+    if (ret == 0) {
+      uint32_t voltage_mv = (dac_value * 3300) / 4095;
+      printf("DAC (Zephyr driver): value=%d, voltage=%d.%03dV\n",
+             dac_value, voltage_mv / 1000, voltage_mv % 1000);
+    } else {
+      printf("DAC write failed: %d (value=%d)\n", ret, dac_value);
+    }
   } else {
-    printf("DAC write failed: %d (value=%d)\n", ret, dac_value);
+    // Fall back to direct I2C communication
+    const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
+
+    if (!device_is_ready(i2c_dev)) {
+      printf("I2C device not ready\n");
+      return;
+    }
+
+    // MCP4725 Fast Mode command format
+    uint8_t tx_data[2];
+    tx_data[0] = (dac_value >> 8) & 0x0F;  // Upper 4 bits
+    tx_data[1] = dac_value & 0xFF;         // Lower 8 bits
+
+    struct i2c_msg msgs[] = {
+      {
+        .buf = tx_data,
+        .len = 2,
+        .flags = I2C_MSG_WRITE | I2C_MSG_STOP,
+      }
+    };
+
+    int ret = i2c_transfer(i2c_dev, msgs, 1, 0x60);
+    if (ret == 0) {
+      uint32_t voltage_mv = (dac_value * 3300) / 4095;
+      printf("DAC (direct I2C): value=%d, voltage=%d.%03dV\n",
+             dac_value, voltage_mv / 1000, voltage_mv % 1000);
+    } else {
+      printf("DAC I2C write failed: %d (value=%d)\n", ret, dac_value);
+    }
   }
 }
 
@@ -186,9 +206,6 @@ void process_pps() {
 int main(void) {
   printf("Hello World! %s\n", CONFIG_BOARD);
 
-  // Test I2C driver initialization
-  const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
-
   int ret;
   bool led_state = true;
 
@@ -201,17 +218,30 @@ int main(void) {
     return 0;
   }
 
-  // Configure I2C once at startup
+  // Check I2C bus first
+  const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
   if (!device_is_ready(i2c_dev)) {
-    printf("I2C device not ready for configuration\n");
+    printf("I2C device not ready\n");
   } else {
-    printf("I2C device is ready - configuring...\n");
+    printf("I2C device ready\n");
+    // Configure I2C
     int i2c_ret = i2c_configure(i2c_dev, I2C_SPEED_SET(I2C_SPEED_STANDARD) | I2C_MODE_CONTROLLER);
     if (i2c_ret < 0) {
       printf("I2C configuration failed: %d\n", i2c_ret);
     } else {
       printf("I2C configured successfully\n");
     }
+  }
+
+  // Give some time for I2C to settle
+  k_msleep(100);
+
+  // Check if DAC device is ready after I2C is configured
+  const struct device *dac_dev = DEVICE_DT_GET(DT_NODELABEL(mcp4725_dac));
+  if (!device_is_ready(dac_dev)) {
+    printf("MCP4725 DAC device not ready - will use direct I2C\n");
+  } else {
+    printf("MCP4725 DAC device ready\n");
   }
 
   static int cycle_count = 0;
