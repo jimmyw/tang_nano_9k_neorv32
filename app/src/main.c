@@ -82,58 +82,30 @@ void test_mcp4725_dac(void) {
     }
   }
 
-  if (device_is_ready(dac_dev)) {
-    // Use Zephyr DAC API
-    struct dac_channel_cfg dac_cfg = {
-      .channel_id = 0,
-      .resolution = 12,
-    };
-
-    int ret = dac_channel_setup(dac_dev, &dac_cfg);
-    if (ret < 0) {
-      printf("DAC channel setup failed: %d\n", ret);
-      return;
-    }
-
-    ret = dac_write_value(dac_dev, 0, dac_value);
-    if (ret == 0) {
-      uint32_t voltage_mv = (dac_value * 3300) / 4095;
-      printf("DAC: value=%d, voltage=%d.%03dV\n",
-             dac_value, voltage_mv / 1000, voltage_mv % 1000);
-    } else {
-      printf("DAC write failed: %d (value=%d)\n", ret, dac_value);
-    }
-  } else {
-    // Fall back to direct I2C communication
-    const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
-
-    if (!device_is_ready(i2c_dev)) {
-      printf("I2C device not ready\n");
-      return;
-    }
-
-    // MCP4725 Fast Mode command format
-    uint8_t tx_data[2];
-    tx_data[0] = (dac_value >> 8) & 0x0F;  // Upper 4 bits
-    tx_data[1] = dac_value & 0xFF;         // Lower 8 bits
-
-    struct i2c_msg msgs[] = {
-      {
-        .buf = tx_data,
-        .len = 2,
-        .flags = I2C_MSG_WRITE | I2C_MSG_STOP,
-      }
-    };
-
-    int ret = i2c_transfer(i2c_dev, msgs, 1, 0x60);
-    if (ret == 0) {
-      uint32_t voltage_mv = (dac_value * 3300) / 4095;
-      printf("DAC (direct I2C): value=%d, voltage=%d.%03dV\n",
-             dac_value, voltage_mv / 1000, voltage_mv % 1000);
-    } else {
-      printf("DAC I2C write failed: %d (value=%d)\n", ret, dac_value);
-    }
+  if (!device_is_ready(dac_dev)) {
+    return;
   }
+  // Use Zephyr DAC API
+  struct dac_channel_cfg dac_cfg = {
+    .channel_id = 0,
+    .resolution = 12,
+  };
+
+  int ret = dac_channel_setup(dac_dev, &dac_cfg);
+  if (ret < 0) {
+    printf("DAC channel setup failed: %d\n", ret);
+    return;
+  }
+
+  ret = dac_write_value(dac_dev, 0, dac_value);
+  if (ret == 0) {
+    uint32_t voltage_mv = (dac_value * 3300) / 4095;
+    printf("DAC: value=%d, voltage=%d.%03dV\n",
+            dac_value, voltage_mv / 1000, voltage_mv % 1000);
+  } else {
+    printf("DAC write failed: %d (value=%d)\n", ret, dac_value);
+  }
+
 }
 
 void process_pps() {
