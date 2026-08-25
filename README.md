@@ -34,6 +34,35 @@ python uart_upload.py <serial port> <NEORV32 executable>
 python uart_upload.py /dev/ttyS6 hello_world/neorv32_exe.bin
 ```
 
+### Building the executable
+
+The bootloader in this repository uses the classic NEORV32 executable header
+(`0x4788CAFE` signature). Recent upstream NEORV32 releases changed the header
+that `make exe` produces, so a freshly built `neorv32_exe.bin` is rejected with
+`ERR_EXE`. Build the raw image and repackage it instead:
+
+```sh
+cd hello_world
+make bin
+python make_exe.py neorv32_raw_exe.bin neorv32_exe.bin
+```
+
+### Building on Windows
+
+The flow works from Windows with [xPack RISC-V Embedded GCC](https://github.com/xpack-binaries/riscv-none-elf-gcc/releases)
+and [w64devkit](https://github.com/skeeto/w64devkit/releases) for the host
+compiler. Two things need attention:
+
+- `NEORV32_HOME` in `hello_world/makefile` must point at your neorv32 checkout.
+- NEORV32's `image_gen.c` includes `elf.h`, which MinGW does not ship. Copying a
+  copy of `elf.h` into `<w64devkit>/include` is enough to build it.
+
+Find the UART port (the higher-numbered of the two the board enumerates) with:
+
+```powershell
+Get-WMIObject Win32_SerialPort | Select Name, DeviceID
+```
+
 ### Using `openFPGALoader`
 
 You can also use the `openFPGALoader` tool to program the user flash space directly.
