@@ -1,6 +1,13 @@
 import sys
 import time
+import traceback
+
 import serial
+
+# Bytes written to the bootloader per iteration. Larger chunks can overrun the
+# host serial buffer on Windows; 512 with a short pause proved reliable there.
+CHUNK_SIZE = 512
+CHUNK_DELAY = 0.05
 
 def print_usage():
     print("Upload and execute application image via serial port (UART) to the NEORV32 bootloader.")
@@ -75,18 +82,17 @@ def main():
         print("Uploading executable...", end='')
         with open(executable_path, 'rb') as exe_file:
             while True:
-                chunk = exe_file.read(1024)
+                chunk = exe_file.read(CHUNK_SIZE)
                 if not chunk:
                     break
                 ser.write(chunk)
+                ser.flush()
+                time.sleep(CHUNK_DELAY)
                 print("X")
-                if ser.in_waiting:
-                    response = ser.read().decode(errors='ignore')
-                    print(response, end=None)
 
-            ser.read_all().decode(errors='ignore')
-        time.sleep(3)
-        response = ser.read_all().decode()
+        ser.flush()
+        time.sleep(5)
+        response = ser.read_all().decode(errors='ignore')
         print(response)
 
         # Check response
@@ -95,7 +101,7 @@ def main():
             ser.close()
             sys.exit(1)
 
-        print ("Booting application...", end='')
+        print("Booting application...", end='')
         ser.write(b'x')
         print(" OK")
         ser.close()
@@ -103,7 +109,7 @@ def main():
 
     except Exception as e:
         print(f"Error during upload: {e}")
-        e.print_stack()
+        traceback.print_exc()
         ser.close()
         sys.exit(1)
 
